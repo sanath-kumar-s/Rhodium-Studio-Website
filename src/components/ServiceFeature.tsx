@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'motion/react';
 import { cn } from '../lib/utils';
 
 interface ServiceFeatureProps {
@@ -26,6 +26,13 @@ export default function ServiceFeature({
   className,
   effect,
 }: ServiceFeatureProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [-100, 100]);
   
   // Dynamic alignment classes
   const alignmentStyles = {
@@ -43,19 +50,25 @@ export default function ServiceFeature({
   };
 
   return (
-    <section className={cn(
-      "relative min-h-[90vh] w-full flex p-10 md:p-24 overflow-hidden border-b border-white/[0.03]",
-      containerAlignment[align],
-      className
-    )}>
-      {/* Background Number */}
-      <div className={cn(
-        "absolute pointer-events-none select-none font-display font-black text-[30vw] leading-none opacity-[0.02] text-white z-0",
-        align.includes('right') ? 'left-0' : 'right-0',
-        align.includes('bottom') ? 'top-0' : 'bottom-0'
-      )}>
+    <section 
+      ref={containerRef}
+      className={cn(
+        "relative min-h-[90vh] w-full flex p-10 md:p-24 overflow-hidden border-b border-white/[0.03]",
+        containerAlignment[align],
+        className
+      )}
+    >
+      {/* Background Number with subtle parallax */}
+      <motion.div 
+        style={{ y }}
+        className={cn(
+          "absolute pointer-events-none select-none font-display font-black text-[30vw] leading-none opacity-[0.02] text-white z-0",
+          align.includes('right') ? 'left-0' : 'right-0',
+          align.includes('bottom') ? 'top-0' : 'bottom-0'
+        )}
+      >
         {index}
-      </div>
+      </motion.div>
 
       {/* Subtle Glow Overlay */}
       <div className={cn(
@@ -71,10 +84,10 @@ export default function ServiceFeature({
 
       {/* Content Container */}
       <motion.div 
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
         className={cn("relative z-10 max-w-4xl", alignmentStyles[align])}
       >
         {/* Label */}

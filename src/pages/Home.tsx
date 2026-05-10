@@ -18,6 +18,7 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-bg selection:bg-white selection:text-black">
+      <div className="noise-overlay" />
       <CustomCursor />
       <SpotlightNavbar />
       
@@ -29,7 +30,8 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="blur-reveal"
           >
             <h1 className="fluid-h1 mb-8">
               Create With <br />
@@ -40,7 +42,7 @@ export default function Home() {
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
+            transition={{ delay: 0.5, duration: 1 }}
             className="text-muted text-xl md:text-2xl max-w-2xl mx-auto mb-16 font-body tracking-tight"
           >
             Engineering high-performance landing pages for modern tech brands. 
@@ -50,13 +52,26 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-            className="flex items-center justify-center"
+            transition={{ delay: 0.8, duration: 1 }}
+            className="flex flex-col items-center justify-center gap-20"
           >
-            <button className="btn-primary group">
+            <button 
+              onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
+              className="btn-primary group"
+            >
               Start Building 
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </button>
+
+            {/* Subtle Scroll Indicator */}
+            <motion.div 
+              animate={{ y: [0, 10, 0] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              className="flex flex-col items-center gap-3"
+            >
+              <div className="w-[1px] h-12 bg-gradient-to-b from-white/20 to-transparent" />
+              <span className="font-ui text-[10px] uppercase tracking-[0.3em] text-muted/50">Scroll</span>
+            </motion.div>
           </motion.div>
         </div>
       </section>
