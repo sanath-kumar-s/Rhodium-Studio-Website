@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
 
   return {
-    base: '/Rhodium-Studio-Website/',
+    base: mode === 'production' ? '/Rhodium-Studio-Website/' : '/',
 
     plugins: [react(), tailwindcss()],
 
