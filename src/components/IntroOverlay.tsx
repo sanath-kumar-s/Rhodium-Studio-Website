@@ -10,7 +10,6 @@ interface IntroOverlayProps {
 const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
     const [counter, setCounter] = useState(0);
     const [phase, setPhase] = useState<'loading' | 'ready' | 'hud' | 'exiting'>('loading');
-    const [hudPhase, setHudPhase] = useState<'none' | 'authorized' | 'scanning' | 'branding'>('none');
     const [resizeStep, setResizeStep] = useState<'normal' | 'small' | 'final'>('normal');
     const [isHovered, setIsHovered] = useState(false);
     const [visibleElements, setVisibleElements] = useState({
@@ -106,18 +105,8 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
     }, [phase, visibleElements.circle]);
 
     const handleEnter = () => {
-        setPhase('hud');
-        // HUD Sequence
-        setTimeout(() => setHudPhase('authorized'), 500);
-        setTimeout(() => setHudPhase('scanning'), 1500);
-        setTimeout(() => setHudPhase('branding'), 2500);
-        
-        setTimeout(() => {
-            setPhase('exiting');
-            setTimeout(() => {
-                onComplete();
-            }, 1200);
-        }, 4500);
+        // Space reserved for new animation from scratch
+        onComplete();
     };
 
     // --- TWEAKABLE CONSTANTS ---
@@ -147,8 +136,6 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
 
     return (
         <div className={`intro-overlay ${phase === 'exiting' ? 'panels-exiting' : ''}`} ref={containerRef}>
-            <div className="panel panel-left" />
-            <div className="panel panel-right" />
 
             {phase !== 'hud' && phase !== 'exiting' && (
                 <div className="loader-container">
@@ -219,106 +206,6 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
                 </div>
             )}
 
-            {(phase === 'hud' || phase === 'exiting') && (
-                <>
-                    <div className="hud-frame visible">
-                        <div className="slashes-row">
-                            {"////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"}
-                        </div>
-                        
-                        <div className="hud-top-bar">
-                            <div className="hud-text bright visible">
-                                {hudData.binary}
-                            </div>
-                            <div className="hud-text visible" style={{ textAlign: 'center' }}>
-                                PARIS GMT +1<br />
-                                48.866667°N, 2.333333°E
-                            </div>
-                            <div className="hud-text visible">
-                                {hudData.os}<br />
-                                {hudData.browser}
-                            </div>
-                            <div className="hud-text bright visible">
-                                [ a ] 100101 00 011101 001
-                            </div>
-                        </div>
-
-                        <div className="hud-side-dots" style={{ left: 0 }}>
-                            {[1, 2, 3, 4, 5].map(i => <div key={i} className="dot" style={{ transitionDelay: `${i * 50}ms` }} />)}
-                        </div>
-                        <div className="hud-side-dots" style={{ right: 0 }}>
-                            {[1, 2, 3, 4, 5].map(i => <div key={i} className="dot" style={{ transitionDelay: `${i * 50}ms` }} />)}
-                        </div>
-
-                        <div className="hud-bottom-bar">
-                            <div className="hud-text visible">IIINTERFACE</div>
-                            <div className="hud-text visible">
-                                100101 <span className="text-red">00</span> 011101 <span className="text-red">00</span> 001
-                            </div>
-                            <div className="hud-text visible">60.0-250.0 HZ</div>
-                            <div className="hud-text visible text-green">BOOT COMPLETE / EXECUTE PROGRAM</div>
-                            <div className="hud-text visible">EXIT LOADER / RRRRUNTIME → HOME <span style={{ marginLeft: '10px' }}>STM</span></div>
-                        </div>
-
-                        <div className="intro-screen-box">
-                            <div className={`corner-top-left hud-text bright visible`} style={{ margin: '20px' }}>
-                                READY
-                            </div>
-
-                            <div className={`authorized-access ${hudPhase !== 'none' ? 'visible' : ''}`}>
-                                AUTHORIZED ACCESS
-                            </div>
-
-                            {hudPhase === 'scanning' && (
-                                <>
-                                    <motion.div 
-                                        className="scan-bar"
-                                        initial={{ right: '-10%' }}
-                                        animate={{ right: '110%' }}
-                                        transition={{ duration: 1.2, ease: "linear", repeat: Infinity }}
-                                    />
-                                    <motion.div 
-                                        className="glitch-cursor"
-                                        animate={{ 
-                                            x: [0, 50, -30, 80, 0],
-                                            y: [0, -40, 60, -20, 0],
-                                            opacity: [1, 0.8, 1, 0.5, 1]
-                                        }}
-                                        transition={{ duration: 0.2, repeat: Infinity }}
-                                        style={{ top: '50%', left: '50%' }}
-                                    />
-                                </>
-                            )}
-
-                            {hudPhase === 'branding' && (
-                                <div className="glitch-branding">
-                                    {[ "A", "Δ", "A" ].map((char, i) => (
-                                        <motion.div 
-                                            key={i}
-                                            className="glitch-letter"
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ 
-                                                opacity: 1, 
-                                                scale: 1,
-                                                x: [0, -2, 2, -1, 0],
-                                                y: [0, 1, -1, 2, 0],
-                                            }}
-                                            transition={{ 
-                                                duration: 0.1, 
-                                                delay: i * 0.1,
-                                                x: { repeat: Infinity, duration: 0.1, repeatType: "mirror" },
-                                                y: { repeat: Infinity, duration: 0.15, repeatType: "mirror" }
-                                            }}
-                                        >
-                                            {char}
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </>
-            )}
         </div>
     );
 };
