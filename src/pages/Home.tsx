@@ -9,9 +9,10 @@ import ServiceFeature from '../components/ServiceFeature';
 import { SpotlightNavbar } from '../components/SpotlightNavbar';
 import CustomCursor from '../components/CustomCursor';
 import IridescentSpheres from '../components/IridescentSpheres';
-import GridRevealEffect from '../components/effects/GridRevealEffect';
 import PhysicsBallsEffect from '../components/effects/PhysicsBallsEffect';
+import InteractiveGlow from '../components/effects/InteractiveGlow';
 import SphereWrapper from '../components/effects/SphereWrapper';
+import { LiquidEffectAnimation } from '../components/ui/liquid-effect-animation';
 
 export default function Home() {
 
@@ -31,8 +32,8 @@ export default function Home() {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           >
             <h1 className="fluid-h1 mb-8">
-              Convert.<br />
-              With Precision.
+              Create With <br />
+              Perfection.
             </h1>
           </motion.div>
 
@@ -70,7 +71,7 @@ export default function Home() {
           title="Landing pages engineered for conversion."
           description="Strategically structured interfaces designed to guide attention, reduce friction, and maximize customer action through precision-focused layouts."
           align="top-left"
-          effect={<GridRevealEffect />}
+          effect={<LiquidEffectAnimation />}
         />
         <ServiceFeature 
           index="02"
@@ -94,6 +95,7 @@ export default function Home() {
           title="Digital systems designed to evolve with your brand."
           description="Flexible and maintainable structures built to support future expansion without sacrificing performance, consistency, or usability."
           align="bottom-left"
+          effect={<InteractiveGlow />}
         />
       </div>
 
