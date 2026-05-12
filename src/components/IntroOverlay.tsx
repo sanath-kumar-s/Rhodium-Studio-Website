@@ -167,7 +167,7 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
                     </div>
 
                     <div 
-                        className={`loader-circle-container ${visibleElements.circle ? 'visible' : ''}`}
+                        className={`loader-circle-container ${visibleElements.circle ? 'visible' : ''} ${phase === 'ready' ? 'is-ready' : ''}`}
                         onMouseEnter={() => setIsHovered(true)}
                         onMouseLeave={() => setIsHovered(false)}
                     >
