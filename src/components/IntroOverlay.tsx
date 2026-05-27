@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { FlipFadeText } from './ui/flip-fade-text';
 import './IntroOverlay.css';
+import logo from '../assets/logo.png';
 
 interface IntroOverlayProps {
     onComplete: () => void;
@@ -39,98 +40,257 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
 
     // Staggered Entry Sequence
     useEffect(() => {
+
         const sequence = async () => {
+
+            // MOBILE VERSION
             if (isMobile) {
-                setVisibleElements({ bottom: false, top: false, circle: true });
-                setPhase('ready');
-                setResizeStep('final');
-                setCounter(100);
+
+                // Faster cinematic timing
+                await new Promise(r => setTimeout(r, 250));
+
+                setVisibleElements(prev => ({
+                    ...prev,
+                    circle: true
+                }));
+
+                await new Promise(r => setTimeout(r, 180));
+
+                setVisibleElements(prev => ({
+                    ...prev,
+                    bottom: true
+                }));
+
+                await new Promise(r => setTimeout(r, 120));
+
+                setVisibleElements(prev => ({
+                    ...prev,
+                    top: true
+                }));
+
+                // DO NOT instantly finish loader anymore
+                // Let the progress animation handle it naturally
+
                 return;
             }
+
+            // DESKTOP VERSION
             await new Promise(r => setTimeout(r, 500));
-            setVisibleElements(prev => ({ ...prev, bottom: true }));
-            
+
+            setVisibleElements(prev => ({
+                ...prev,
+                bottom: true
+            }));
+
             await new Promise(r => setTimeout(r, 800));
-            setVisibleElements(prev => ({ ...prev, top: true }));
-            
+
+            setVisibleElements(prev => ({
+                ...prev,
+                top: true
+            }));
+
             await new Promise(r => setTimeout(r, 800));
-            setVisibleElements(prev => ({ ...prev, circle: true }));
+
+            setVisibleElements(prev => ({
+                ...prev,
+                circle: true
+            }));
+
         };
+
         sequence();
+
     }, [isMobile]);
 
     // Counter and Glitch Logic
+    // Counter and Glitch Logic
+    // Counter and Glitch Logic
     useEffect(() => {
-        if (phase !== 'loading' || !visibleElements.circle) return;
 
-        let startTime = Date.now();
-        const duration = 4000;
+        if (phase !== 'loading' || !visibleElements.circle)
+            return;
+
+        let animationFrame: number;
+
+        // REAL progress
+        let currentProgress = 0;
+
+        // MASTER overall speed multiplier
+        let animationOverallSpeedMultiplier = 1.4;
+
+        // Current movement speed
+        let speedMultiplier = 0.15;
+
+        // Target speed we lerp toward
+        let targetSpeed = 0.15;
+
+        // Timing control
+        let lastSpeedChange = performance.now();
 
         const update = () => {
-            const now = Date.now();
-            const elapsed = now - startTime;
-            
-            if (elapsed >= duration) {
+
+            const now = performance.now();
+
+            // Change target speed occasionally
+            if (now - lastSpeedChange > 400 + Math.random() * 1200) {
+
+                // Different progress zones
+                if (currentProgress < 15) {
+
+                    // explosive startup
+                    targetSpeed =
+                        (0.8 + Math.random() * 0.8);
+
+                } else if (currentProgress < 40) {
+
+                    // smooth medium pacing
+                    targetSpeed =
+                        (0.2 + Math.random() * 0.35);
+
+                } else if (currentProgress < 65) {
+
+                    // intentional slowdowns
+                    targetSpeed =
+                        (0.08 + Math.random() * 0.22);
+
+                } else if (currentProgress < 85) {
+
+                    // dramatic pacing
+                    targetSpeed =
+                        (0.04 + Math.random() * 0.14);
+
+                } else if (currentProgress < 95) {
+
+                    // suspense hold
+                    targetSpeed =
+                        (0.015 + Math.random() * 0.05);
+
+                } else {
+
+                    // ultra cinematic finish
+                    targetSpeed =
+                        (0.005 + Math.random() * 0.02);
+                }
+
+                lastSpeedChange = now;
+            }
+
+            // LERP toward target speed
+            speedMultiplier +=
+                (targetSpeed - speedMultiplier) * 0.045;
+
+            // Actual progress movement
+            currentProgress +=
+                speedMultiplier * animationOverallSpeedMultiplier;
+
+            // Clamp
+            currentProgress = Math.max(
+                0,
+                Math.min(currentProgress, 100)
+            );
+
+            const rounded = Math.floor(currentProgress);
+
+            setCounter(rounded);
+
+            window.dispatchEvent(
+                new CustomEvent('loading-progress', {
+                    detail: rounded
+                })
+            );
+
+            // Finish
+            if (currentProgress >= 100) {
+
                 setCounter(100);
-                window.dispatchEvent(new CustomEvent('loading-progress', { detail: 100 }));
-                // Dynamic Resize Animation: 100% -> 70% -> 75%
+
+                window.dispatchEvent(
+                    new CustomEvent('loading-progress', {
+                        detail: 100
+                    })
+                );
+
                 setTimeout(() => {
+
                     setResizeStep('small');
+
                     setTimeout(() => {
+
                         setResizeStep('final');
                         setPhase('ready');
+
                     }, 400);
+
                 }, 500);
+
                 return;
             }
 
-            // Calculate progress based on 1s cycles (fast 0.75s, slow 0.25s)
-            const cycle = Math.floor(elapsed / 1000);
-            const timeInCycle = elapsed % 1000;
-            
-            let progressInCycle = 0;
-            if (timeInCycle < 750) {
-                // Fast part: 0.75s covers 21.4285% (85.7% of the cycle's 25% share)
-                progressInCycle = (timeInCycle / 750) * 21.4285;
-            } else {
-                // Slow part: 0.25s covers the remaining 3.5715% (14.3% of the cycle's 25% share)
-                progressInCycle = 21.4285 + ((timeInCycle - 750) / 250) * 1.5715;
-            }
-            
-            const currentTotalProgress = (cycle * 25) + progressInCycle;
-            const finalProgress = Math.floor(Math.min(currentTotalProgress, 100));
-            setCounter(finalProgress);
-            window.dispatchEvent(new CustomEvent('loading-progress', { detail: finalProgress }));
+            // Premium glitch timing
+            if (rounded > 45 && rounded < 82) {
 
-            // Glitch text logic (scaled to 4s duration)
-            if (elapsed > 2000 && elapsed < 3000) {
-                if (Math.random() > 0.8) {
+                if (Math.random() > 0.94) {
+
                     setGlitchText({
-                        portfolio: Math.random() > 0.5 ? 'PORTFƏLIO' : 'PORTFOLTO',
-                        overview: Math.random() > 0.5 ? 'OVFRVTFW-' : '0V3RV13W'
+                        portfolio:
+                            Math.random() > 0.5
+                                ? 'PORTFƏLIO'
+                                : 'PORTF0LIO',
+
+                        overview:
+                            Math.random() > 0.5
+                                ? '0V3RVIEW'
+                                : 'OVFRVTFW'
                     });
+
                 }
+
             } else {
-                setGlitchText({ portfolio: 'PORTFOLIO', overview: 'OVERVIEW:' });
+
+                setGlitchText({
+                    portfolio: 'PORTFOLIO',
+                    overview: 'OVERVIEW:'
+                });
+
             }
 
-            requestAnimationFrame(update);
+            animationFrame = requestAnimationFrame(update);
         };
 
-        requestAnimationFrame(update);
+        animationFrame = requestAnimationFrame(update);
 
+        // HUD detection
         const userAgent = navigator.userAgent;
+
         let os = 'UNKNOWN OS';
-        if (userAgent.indexOf('Win') !== -1) os = 'WINDOWS';
-        if (userAgent.indexOf('Mac') !== -1) os = 'MACINTOSH';
-        if (userAgent.indexOf('Linux') !== -1) os = 'LINUX';
+
+        if (userAgent.indexOf('Win') !== -1)
+            os = 'WINDOWS';
+
+        if (userAgent.indexOf('Mac') !== -1)
+            os = 'MACINTOSH';
+
+        if (userAgent.indexOf('Linux') !== -1)
+            os = 'LINUX';
 
         let browser = 'UNKNOWN BROWSER';
-        if (userAgent.indexOf('Chrome') !== -1) browser = 'CHROME';
-        else if (userAgent.indexOf('Safari') !== -1) browser = 'SAFARI';
-        else if (userAgent.indexOf('Firefox') !== -1) browser = 'FIREFOX';
 
-        setHudData(prev => ({ ...prev, os, browser }));
+        if (userAgent.indexOf('Chrome') !== -1)
+            browser = 'CHROME';
+
+        else if (userAgent.indexOf('Safari') !== -1)
+            browser = 'SAFARI';
+
+        else if (userAgent.indexOf('Firefox') !== -1)
+            browser = 'FIREFOX';
+
+        setHudData(prev => ({
+            ...prev,
+            os,
+            browser
+        }));
+
+        return () => cancelAnimationFrame(animationFrame);
 
     }, [phase, visibleElements.circle]);
 
@@ -146,11 +306,11 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
 
     // --- TWEAKABLE CONSTANTS ---
     const baseRadius = 200; // Original circle size
-    
+
     // Resize steps (multipliers of baseRadius)
     const resizeSmallMult = 0.7;  // 70%
     const resizeFinalMult = 0.75; // 75%
-    
+
     // Hover offsets (added/subtracted from current radius)
     const outerHoverOffset = -10; // Outer circle shrinks by 10px on hover
     const innerHoverOffset = 30;  // Inner circle expands by 15px on hover
@@ -176,8 +336,8 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
                 <div className="loader-container">
                     <div className={`corner-top-left hud-text bright ${visibleElements.top ? 'visible' : ''}`}>
                         {phase === 'loading' ? counter : (
-                            <FlipFadeText 
-                                words={["READY","READY","READY"]}
+                            <FlipFadeText
+                                words={["READY", "READY", "READY"]}
                                 interval={1500}
                                 letterDuration={0.3}
                                 staggerDelay={0.05}
@@ -201,36 +361,36 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
                         V-002
                     </div>
 
-                    <div 
+                    <div
                         className={`loader-circle-container ${visibleElements.circle ? 'visible' : ''} ${phase === 'ready' ? 'is-ready' : ''}`}
                         onMouseEnter={() => setIsHovered(true)}
                         onMouseLeave={() => setIsHovered(false)}
                     >
                         <svg className="loader-svg" viewBox="0 0 400 400">
-                            <circle 
-                                className="loader-circle-bg" 
-                                cx="200" cy="200" r={outerRadius} 
+                            <circle
+                                className="loader-circle-bg"
+                                cx="200" cy="200" r={outerRadius}
                             />
                             {phase === 'loading' && (
-                                <circle 
-                                    className="loader-circle-sweep" 
+                                <circle
+                                    className="loader-circle-sweep"
                                     cx="200" cy="200" r={outerRadius}
                                     strokeDasharray={circumference}
                                     strokeDashoffset={dashOffset}
                                 />
                             )}
                             {(phase === 'loading' || phase === 'ready') && (
-                                <circle 
-                                    className="inner-dashed-circle" 
-                                    cx="200" cy="200" r={innerRadius} 
+                                <circle
+                                    className="inner-dashed-circle"
+                                    cx="200" cy="200" r={innerRadius}
                                 />
                             )}
                         </svg>
 
                         {phase === 'loading' ? (
-                            <div className="logo-mark" style={{ transform: counter === 100 ? 'scale(1.1)' : 'scale(1)' }}><img src="logo.png" alt="RHODIUM"></img></div>
+                            <div className="logo-mark" style={{ transform: counter === 100 ? 'scale(0.4)' : 'scale(0.2  )' }}><img src={logo} alt="RHODIUM"></img></div>
                         ) : (
-                            <button 
+                            <button
                                 className="enter-button"
                                 onClick={handleEnter}
                             >

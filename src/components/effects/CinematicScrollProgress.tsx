@@ -1,25 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { motion, useScroll, useSpring, useTransform, useVelocity, useMotionValue, AnimatePresence } from "motion/react";
+import { motion, useScroll, useSpring, useTransform, useVelocity } from "framer-motion";
 
 const CinematicScrollProgress: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   const { scrollYProgress } = useScroll();
-  const loadingProgress = useMotionValue(0);
-
-  // Choose between loading progress or scroll progress
-  const activeProgress = useTransform(
-    [scrollYProgress, loadingProgress],
-    ([s, l]) => isLoading ? (l as number) : (s as number)
-  );
 
   // Spring configuration for that "premium" overshoot and settle feel
-  const scaleX = useSpring(activeProgress, {
+  const smoothProgress = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
     restDelta: 0.001
   });
+
+  // Ensure a tiny elegant center indicator (1% scale) is visible even at the top of the page
+  const scaleX = useTransform(smoothProgress, [0, 1], [0.01, 1]);
 
   // Track scroll velocity for reactive effects
   const scrollVelocity = useVelocity(scrollYProgress);
@@ -33,7 +28,7 @@ const CinematicScrollProgress: React.FC = () => {
 
   // Pulse opacity while scrolling
   const lineOpacity = useTransform(
-    activeProgress,
+    scrollYProgress,
     [0, 0.05, 0.95, 1],
     [0.4, 1, 1, 0.4]
   );
@@ -43,17 +38,6 @@ const CinematicScrollProgress: React.FC = () => {
 
   useEffect(() => {
     setIsMounted(true);
-
-    const handleProgress = (e: any) => {
-      loadingProgress.set(e.detail / 100);
-      if (e.detail >= 100) {
-        // Stay in loading mode for a moment after 100% for the transition
-        setTimeout(() => setIsLoading(false), 800);
-      }
-    };
-
-    window.addEventListener('loading-progress', handleProgress);
-    return () => window.removeEventListener('loading-progress', handleProgress);
   }, []);
 
   // Use visibility: hidden or opacity instead of conditional return to maintain hook order
@@ -94,24 +78,7 @@ const CinematicScrollProgress: React.FC = () => {
         />
 
         {/* Ambient Reflection beneath the bar */}
-        <motion.div
-          animate={isLoading ? { opacity: [0.3, 0.6, 0.3] } : { opacity: 0.5 }}
-          transition={isLoading ? { repeat: Infinity, duration: 2 } : {}}
-          className="absolute top-[4px] left-0 w-full h-[8px] bg-gradient-to-b from-white/10 to-transparent blur-[6px]"
-        />
-
-        {/* Loading Complete Flare */}
-        <AnimatePresence>
-          {isLoading && loadingProgress.get() >= 1 && (
-            <motion.div
-              initial={{ scaleX: 0, opacity: 0 }}
-              animate={{ scaleX: 1, opacity: [0, 1, 0] }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="absolute inset-0 bg-white blur-[10px] z-10"
-            />
-          )}
-        </AnimatePresence>
+        <div className="absolute top-[4px] left-0 w-full h-[8px] bg-gradient-to-b from-white/10 to-transparent blur-[6px] opacity-50" />
       </motion.div>
 
 

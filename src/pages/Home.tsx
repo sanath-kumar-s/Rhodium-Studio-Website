@@ -79,6 +79,10 @@ export default function Home() {
         </motion.div>
       </Suspense>
       
+      <Suspense fallback={null}>
+        <CinematicScrollProgress />
+      </Suspense>
+
       <motion.div
         animate={{ 
           scale: isContactOpen ? 0.98 : 1,
@@ -87,9 +91,6 @@ export default function Home() {
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="will-change-transform"
       >
-        <Suspense fallback={null}>
-          <CinematicScrollProgress />
-        </Suspense>
 
         <motion.div
           initial="hidden"
