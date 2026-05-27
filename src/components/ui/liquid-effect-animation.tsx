@@ -5,6 +5,7 @@ export function LiquidEffectAnimation() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
+    if (window.innerWidth <= 768) return;
     if (!canvasRef.current) return
 
     // Load the script dynamically

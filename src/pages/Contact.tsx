@@ -6,7 +6,7 @@
 import { useState, useRef, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import emailjs from '@emailjs/browser';
-import CustomCursor from '../components/CustomCursor';
+import CustomCursor from '../components/effects/CustomCursor';
 import { SpotlightNavbar } from '../components/SpotlightNavbar';
 
 const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY";

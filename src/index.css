@@ -3,6 +3,29 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+@font-face {
+  font-family: 'Geist';
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+}
+
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 100vh;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {
@@ -25,6 +48,13 @@
     /* Hide native scrollbars globally */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
+    font-size: 16px;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  @media (max-width: 480px) {
+    html { font-size: 15px; }
   }
   
   /* Hide scrollbar for Chrome, Safari and Opera */
@@ -34,8 +64,16 @@
 
   body {
     @apply font-body antialiased bg-background text-foreground;
-    cursor: none; 
     overflow-x: hidden;
+    max-width: 100%;
+    line-height: 1.5;
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    /* Hide native cursor only on desktop */
+    @media (min-width: 769px) {
+      cursor: none;
+    }
 
     /* Premium Grid Background */
     background-image: 
@@ -47,28 +85,44 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight text-white;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  @media (max-width: 768px) {
+    h1, h2 { line-height: 1.1; }
+  }
+
+  @media (max-width: 480px) {
+    h1, h2 { letter-spacing: -0.01em; }
   }
   * {
     @apply border-border outline-ring/50;
+  }
+
+  button, a, .btn {
+    min-height: 44px;
+    touch-action: manipulation;
   }
 }
 
 @layer components {
   .fluid-h1 {
     font-family: var(--font-display);
-    font-size: clamp(4rem, 10vw, 8.5rem);
+    font-size: clamp(2.5rem, 10vw, 8.5rem);
     font-weight: 800;
-    line-height: 0.85;
-    letter-spacing: -0.08em;
+    line-height: 0.9;
+    letter-spacing: -0.06em;
     @apply text-white;
   }
 
   .fluid-h2 {
     font-family: var(--font-display);
-    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-size: clamp(1.8rem, 5vw, 4.5rem);
     font-weight: 800;
-    line-height: 0.9;
-    letter-spacing: -0.06em;
+    line-height: 1;
+    letter-spacing: -0.04em;
     @apply text-white;
   }
 

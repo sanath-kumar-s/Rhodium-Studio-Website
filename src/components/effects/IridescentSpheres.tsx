@@ -1,10 +1,7 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { usePerformance } from '../../hooks/usePerformance';
+import { cn } from '../../lib/utils';
 
 // ── EASY CUSTOMIZATION ──────────────────────────
 const CONFIG = {
@@ -69,9 +66,13 @@ export default function IridescentSpheres() {
   const glowRefs = [useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null), useRef<HTMLDivElement>(null)];
   const pulseRef = useRef<HTMLDivElement>(null);
   const mouse = useRef({ x: 0, y: 0 });
+  const rafRef = useRef<number>(0);
+  const { isMobile, isLowEnd } = usePerformance();
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
+
+    const isMob = isMobile;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -79,16 +80,20 @@ export default function IridescentSpheres() {
 
     const renderer = new THREE.WebGLRenderer({
       canvas: canvasRef.current,
-      antialias: true,
+      antialias: !isLowEnd,
       alpha: true,
+      powerPreference: "high-performance",
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLowEnd ? 1 : 2));
     renderer.setClearColor(0x000000, 0);
+
+    const geoDetail = isLowEnd ? 32 : 64;
 
     // Spheres
     const createSphere = (radius: number, pos: THREE.Vector3) => {
-      const geometry = new THREE.SphereGeometry(radius, 64, 64);
+      const scaleFactor = isMob ? 0.45 : 1; 
+      const geometry = new THREE.SphereGeometry(radius * scaleFactor, geoDetail, geoDetail);
       const material = new THREE.ShaderMaterial({
         uniforms: {
           time: { value: 0 },
@@ -100,8 +105,8 @@ export default function IridescentSpheres() {
         transparent: true,
       });
       const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.copy(pos);
-      return { mesh, material, target: pos.clone(), baseScale: 1 };
+      mesh.position.copy(pos.clone().multiplyScalar(scaleFactor));
+      return { mesh, material, target: pos.clone().multiplyScalar(scaleFactor), baseScale: scaleFactor };
     };
 
     const s1 = createSphere(CONFIG.sphere1Size, new THREE.Vector3(1.8, 0.2, 0));
@@ -130,34 +135,44 @@ export default function IridescentSpheres() {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      mouse.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouse.current.y = -(e.clientY / window.innerHeight - 0.5) * 2;
+      if (isMob) return;
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        mouse.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
+        mouse.current.y = -(e.clientY / window.innerHeight - 0.5) * 2;
+      });
     };
 
     window.addEventListener('resize', handleResize);
-    window.addEventListener('mousemove', handleMouseMove);
+    if (!isMob) window.addEventListener('mousemove', handleMouseMove);
+
+    let t = 0;
+    let animationFrameId: number;
 
     const animate = (time: number) => {
-      const t = time * 0.001;
+      t = time * 0.001;
+      animationFrameId = requestAnimationFrame(animate);
 
       // Update Uniforms
       s1.material.uniforms.time.value = t;
       s2.material.uniforms.time.value = t;
       s3.material.uniforms.time.value = t;
 
-      // Add subtle floating oscillation
-      const floatY1 = Math.sin(t * 0.8) * 0.15;
-      const floatY2 = Math.cos(t * 1.2) * 0.12;
-      const floatY3 = Math.sin(t * 1.5) * 0.1;
+      // Random floating movement for mobile, Mouse parallax for desktop
+      let mx, my;
+      if (isMob) {
+        mx = Math.sin(t * 0.4) * 0.5;
+        my = Math.cos(t * 0.25) * 0.4;
+      } else {
+        mx = mouse.current.x * 4.0;
+        my = mouse.current.y * 2.5;
+      }
 
-      // Mouse Following Parallax Logic
-      const mx = mouse.current.x * 4.0;
-      const my = mouse.current.y * 2.5;
+      const offset = isMob ? new THREE.Vector3(0, 0, 0) : new THREE.Vector3(1.8, 0.2, 0);
+      s1.target.set(mx + offset.x, my + offset.y, 0);
+      s1.mesh.position.lerp(s1.target, isMob ? 0.02 : CONFIG.lerpSpeed[0]);
 
-      s1.target.set(mx * 1.0 + 1.8, my * 0.7 + 0.2, 0);
-      s1.mesh.position.lerp(s1.target, CONFIG.lerpSpeed[0]);
-
-      // Orbit Logic for Small Spheres (Bound to s1)
+      // Orbit Logic
       const orbitSpeed2 = 0.6;
       const orbitSpeed3 = -0.4;
       const orbitRadius2 = 1.6;
@@ -177,18 +192,14 @@ export default function IridescentSpheres() {
       s2.mesh.position.lerp(s2.target, 0.05);
       s3.mesh.position.lerp(s3.target, 0.03);
 
-      // Dynamic wobble based on velocity/distance to mouse
       const velocity = new THREE.Vector3().subVectors(s1.mesh.position, s1.target).length();
       s1.material.uniforms.wobble.value = 1.0 + velocity * 2.0;
-      s2.material.uniforms.time.value = t;
-      s3.material.uniforms.time.value = t;
 
-      s1.mesh.rotation.y = t * 0.1 + mx * 0.1;
-      s1.mesh.rotation.x = my * 0.1;
+      s1.mesh.rotation.y = t * 0.1 + (isMob ? 0 : mx * 0.1);
+      s1.mesh.rotation.x = isMob ? t * 0.05 : my * 0.1;
       s2.mesh.rotation.z = t * 0.2;
 
-      // Background Pulse Logic
-      if (pulseRef.current) {
+      if (pulseRef.current && !isLowEnd) {
         const pulse = 0.08 + Math.sin(t * 0.6) * 0.04;
         pulseRef.current.style.opacity = pulse.toString();
       }
@@ -207,36 +218,37 @@ export default function IridescentSpheres() {
           glow.style.width = `${size}px`;
           glow.style.height = `${size}px`;
           glow.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
-          glow.style.opacity = (CONFIG.glowOpacity * zDepth).toString();
+          if (!isLowEnd) glow.style.opacity = (CONFIG.glowOpacity * zDepth).toString();
         }
       });
 
       renderer.render(scene, camera);
-      requestAnimationFrame(animate);
     };
 
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(rafRef.current);
+      cancelAnimationFrame(animationFrameId);
+      scene.clear();
       renderer.dispose();
     };
-  }, []);
+  }, [isMobile, isLowEnd]);
 
   return (
-    <section ref={containerRef} className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-black">
-      {/* Background Highlighting (Minimalist & Premium) */}
+    <section ref={containerRef} className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-black will-change-transform">
       <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_60%_40%,_#0a0a0a_0%,_#000000_100%)] opacity-100" />
       <div className="absolute inset-0 z-0 bg-[linear-gradient(to_bottom_right,_rgba(255,255,255,0.02)_0%,_transparent_40%,_transparent_60%,_rgba(255,255,255,0.01)_100%)]" />
       
-      {/* Pulse Overlay */}
-      <div 
-        ref={pulseRef}
-        className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.08)_0%,_transparent_70%)] pointer-events-none transition-opacity duration-1000"
-      />
+      {!isLowEnd && (
+        <div 
+          ref={pulseRef}
+          className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.08)_0%,_transparent_70%)] pointer-events-none transition-opacity duration-1000"
+        />
+      )}
 
-      {/* Background Text Layer */}
       <div className="absolute inset-0 z-0 flex items-center justify-center px-10">
         <h2 
           className="font-display font-extrabold text-white leading-[0.9] tracking-[-0.01em] uppercase whitespace-pre-wrap text-center lg:text-left lg:ml-[-10vw]"
@@ -246,29 +258,35 @@ export default function IridescentSpheres() {
         </h2>
       </div>
 
-      {/* Distortion overlay (CSS Trick) */}
       <div className="absolute inset-0 z-[5] pointer-events-none mix-blend-overlay opacity-20">
         <div className="w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
       </div>
 
-      {/* Three.js Canvas */}
       <canvas 
         ref={canvasRef} 
         className="absolute inset-0 z-10 pointer-events-none select-none"
       />
 
-      {/* Distortion Glow Layers (Backdrop filter causes text distortion) */}
       <div 
         ref={glowRefs[0]} 
-        className="absolute top-0 left-0 z-[1] bg-white/5 backdrop-blur-[25px] saturate-[1.5] brightness-[1.1] rounded-full pointer-events-none transition-transform duration-100 ease-out border border-white/10 shadow-[0_0_100px_rgba(255,255,255,0.05)]" 
+        className={cn(
+          "absolute top-0 left-0 z-[1] bg-white/5 rounded-full pointer-events-none transition-transform duration-100 ease-out border border-white/10 shadow-[0_0_100px_rgba(255,255,255,0.05)]",
+          !isLowEnd && "backdrop-blur-[25px] saturate-[1.5] brightness-[1.1]"
+        )} 
       />
       <div 
         ref={glowRefs[1]} 
-        className="absolute top-0 left-0 z-[1] bg-white/5 backdrop-blur-[15px] saturate-[1.2] brightness-[1.05] rounded-full pointer-events-none transition-transform duration-100 ease-out border border-white/5" 
+        className={cn(
+          "absolute top-0 left-0 z-[1] bg-white/5 rounded-full pointer-events-none transition-transform duration-100 ease-out border border-white/5",
+          !isLowEnd && "backdrop-blur-[15px] saturate-[1.2] brightness-[1.05]"
+        )} 
       />
       <div 
         ref={glowRefs[2]} 
-        className="absolute top-0 left-0 z-[1] bg-white/5 backdrop-blur-[10px] saturate-[1.2] brightness-[1.05] rounded-full pointer-events-none transition-transform duration-100 ease-out border border-white/5" 
+        className={cn(
+          "absolute top-0 left-0 z-[1] bg-white/5 rounded-full pointer-events-none transition-transform duration-100 ease-out border border-white/5",
+          !isLowEnd && "backdrop-blur-[10px] saturate-[1.2] brightness-[1.05]"
+        )} 
       />
     </section>
   );

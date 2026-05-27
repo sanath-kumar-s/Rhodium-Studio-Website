@@ -131,7 +131,7 @@ export default function ParticleSphere({
   particles: particlesConfig = { scale: 0.5, shape: "sphere" },
   cursorConfig = { enabled: true, radius: 150, strength: 0.3, clickForce: 10 },
   sphereColor = "#ffffff",
-  style,
+  style = {},
 }) {
   const containerRef = useRef(null);
   const zoomProbeRef = useRef(null);

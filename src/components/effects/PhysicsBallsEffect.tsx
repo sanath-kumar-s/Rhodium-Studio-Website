@@ -1,23 +1,11 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React, { useEffect, useRef } from 'react';
+import { usePerformance } from '../../hooks/usePerformance';
 
 const COLORS = [
   '#ffffff', '#f0f0f0', '#e0e0e0', '#d0d0d0',
   '#b0b0b0', '#909090', '#707070', '#505050',
   '#383838', '#202020', '#141414'
 ];
-
-const BALL_COUNT = 160;
-const GRAVITY = 0.35;
-const DAMPING = 0.72;
-const FRICTION = 0.992;
-const REPULSION_RADIUS = 90;
-const GRAB_RADIUS = 50;
-const SUBSTEPS = 3;
 
 interface Ball {
   x: number;
@@ -38,16 +26,27 @@ export default function PhysicsBallsEffect() {
   const grabbedRef = useRef<number | null>(null);
   const prevMouseRef = useRef<{ x: number; y: number }[]>([]);
   const activeRef = useRef(false);
+  const rafRef = useRef<number>(0);
+
+  const { isMobile, isLowEnd } = usePerformance();
+
+  const BALL_COUNT = isLowEnd ? 60 : 160;
+  const GRAVITY = 0.35;
+  const DAMPING = 0.72;
+  const FRICTION = 0.992;
+  const REPULSION_RADIUS = 90;
+  const GRAB_RADIUS = 50;
+  const SUBSTEPS = isLowEnd ? 2 : 3;
 
   useEffect(() => {
-    // Disable on touch devices to avoid interference with scrolling
-    if ('ontouchstart' in window) return;
+    // Disable on touch devices or low-end to avoid interference with scrolling
+    if (isMobile || isLowEnd) return;
 
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     const resize = () => {
@@ -155,12 +154,6 @@ export default function PhysicsBallsEffect() {
           b.x += b.vx / SUBSTEPS;
           b.y += b.vy / SUBSTEPS;
 
-          // Robustness checks
-          if (!Number.isFinite(b.x)) b.x = W * 0.5;
-          if (!Number.isFinite(b.y)) b.y = H * 0.5;
-          if (!Number.isFinite(b.vx)) b.vx = 0;
-          if (!Number.isFinite(b.vy)) b.vy = 0;
-
           // Boundary checks
           if (b.x - b.r < 0) {
             b.x = b.r;
@@ -198,10 +191,6 @@ export default function PhysicsBallsEffect() {
         }
       });
 
-      // Cursor feedback
-      const hovering = ballsRef.current.some(b => Math.hypot(b.x - mx, b.y - my) < b.r + 4);
-      canvas.style.cursor = grabbedRef.current !== null ? 'grabbing' : hovering ? 'grab' : 'default';
-
       animRef.current = requestAnimationFrame(loop);
     };
 
@@ -219,14 +208,16 @@ export default function PhysicsBallsEffect() {
     observer.observe(container);
 
     const onMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseRef.current.x = e.clientX - rect.left;
-      mouseRef.current.y = e.clientY - rect.top;
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        const rect = canvas.getBoundingClientRect();
+        mouseRef.current.x = e.clientX - rect.left;
+        mouseRef.current.y = e.clientY - rect.top;
+      });
     };
 
     const onMouseDown = () => {
       mouseRef.current.down = true;
-      prevMouseRef.current = [];
       let closest = -1;
       let closestDist = GRAB_RADIUS;
       const mx = mouseRef.current.x;
@@ -275,14 +266,17 @@ export default function PhysicsBallsEffect() {
       observer.disconnect();
       ro.disconnect();
       cancelAnimationFrame(animRef.current);
+      cancelAnimationFrame(rafRef.current);
       canvas.removeEventListener('mousemove', onMouseMove);
       canvas.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mouseup', onMouseUp);
     };
-  }, []);
+  }, [isMobile, isLowEnd]);
+
+  if (isMobile || isLowEnd) return null;
 
   return (
-    <div ref={containerRef} className="absolute inset-0 z-[2] pointer-events-none">
+    <div ref={containerRef} className="absolute inset-0 z-[2] pointer-events-none will-change-transform">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"

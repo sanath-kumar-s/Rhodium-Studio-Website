@@ -1,11 +1,7 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { cn } from '../lib/utils';
+import { usePerformance } from '../hooks/usePerformance';
 
 interface ServiceFeatureProps {
   label: string;
@@ -27,40 +23,42 @@ export default function ServiceFeature({
   effect,
 }: ServiceFeatureProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { isLowEnd } = usePerformance();
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], [-100, 100]);
+  const y = useTransform(scrollYProgress, [0, 1], isLowEnd ? [0, 0] : [-100, 100]);
   
   // Dynamic alignment classes
   const alignmentStyles = {
-    'top-left': 'justify-start items-start text-left',
-    'bottom-right': 'justify-end items-end text-right ml-auto',
-    'top-right': 'justify-end items-start text-right ml-auto',
-    'bottom-left': 'justify-start items-end text-left',
+    'top-left': 'justify-start items-start text-left md:text-left',
+    'bottom-right': 'justify-end items-end text-left md:text-right ml-auto',
+    'top-right': 'justify-end items-start text-left md:text-right ml-auto',
+    'bottom-left': 'justify-start items-end text-left md:text-left',
   };
 
   const containerAlignment = {
     'top-left': 'items-start justify-start',
-    'bottom-right': 'items-end justify-end',
-    'top-right': 'items-start justify-end',
-    'bottom-left': 'items-end justify-start',
+    'bottom-right': 'items-start md:items-end justify-start md:justify-end',
+    'top-right': 'items-start justify-start md:justify-end',
+    'bottom-left': 'items-start md:items-end justify-start',
   };
 
   return (
     <section 
       ref={containerRef}
       className={cn(
-        "relative min-h-[90vh] w-full flex p-10 md:p-24 overflow-hidden border-b border-white/[0.03]",
+        "relative min-h-[70vh] md:min-h-[90vh] w-full flex p-6 md:p-24 overflow-hidden border-b border-white/[0.03] will-change-transform",
         containerAlignment[align],
         className
       )}
     >
       {/* Background Number with subtle parallax */}
       <motion.div 
-        style={{ y }}
+        style={{ y: isLowEnd ? 0 : y }}
         className={cn(
           "absolute pointer-events-none select-none font-display font-black text-[30vw] leading-none opacity-[0.02] text-white z-0",
           align.includes('right') ? 'left-0' : 'right-0',
@@ -71,23 +69,25 @@ export default function ServiceFeature({
       </motion.div>
 
       {/* Subtle Glow Overlay */}
-      <div className={cn(
-        "absolute w-[600px] h-[600px] bg-white/[0.01] blur-[120px] rounded-full pointer-events-none z-0",
-        align === 'top-left' && '-top-48 -left-48',
-        align === 'bottom-right' && '-bottom-48 -right-48',
-        align === 'top-right' && '-top-48 -right-48',
-        align === 'bottom-left' && '-bottom-48 -left-48',
-      )} />
+      {!isLowEnd && (
+        <div className={cn(
+          "absolute w-[600px] h-[600px] bg-white/[0.01] blur-[120px] rounded-full pointer-events-none z-0",
+          align === 'top-left' && '-top-48 -left-48',
+          align === 'bottom-right' && '-bottom-48 -right-48',
+          align === 'top-right' && '-top-48 -right-48',
+          align === 'bottom-left' && '-bottom-48 -left-48',
+        )} />
+      )}
 
       {/* Scoped Interactive Effect Layer */}
       {effect}
 
       {/* Content Container */}
       <motion.div 
-        initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+        initial={isLowEnd ? { opacity: 0 } : { opacity: 0, y: 30, filter: "blur(10px)" }}
         whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: isLowEnd ? 0.4 : 1.2, ease: [0.22, 1, 0.36, 1] }}
         className={cn("relative z-10 max-w-4xl", alignmentStyles[align])}
       >
         {/* Label */}
@@ -109,8 +109,8 @@ export default function ServiceFeature({
 
         {/* Description */}
         <p className={cn(
-          "text-muted text-lg md:text-xl font-body leading-relaxed max-w-[420px] tracking-tight",
-          align.includes('right') ? 'ml-auto' : ''
+          "text-muted text-base md:text-xl font-body leading-relaxed max-w-[420px] tracking-tight",
+          align.includes('right') ? 'md:ml-auto' : ''
         )}>
           {description}
         </p>

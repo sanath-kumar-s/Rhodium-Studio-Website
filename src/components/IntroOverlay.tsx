@@ -12,6 +12,7 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
     const [phase, setPhase] = useState<'loading' | 'ready' | 'hud' | 'exiting'>('loading');
     const [resizeStep, setResizeStep] = useState<'normal' | 'small' | 'final'>('normal');
     const [isHovered, setIsHovered] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const [visibleElements, setVisibleElements] = useState({
         bottom: false,
         top: false,
@@ -29,9 +30,23 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
 
     const containerRef = useRef<HTMLDivElement>(null);
 
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
     // Staggered Entry Sequence
     useEffect(() => {
         const sequence = async () => {
+            if (isMobile) {
+                setVisibleElements({ bottom: false, top: false, circle: true });
+                setPhase('ready');
+                setResizeStep('final');
+                setCounter(100);
+                return;
+            }
             await new Promise(r => setTimeout(r, 500));
             setVisibleElements(prev => ({ ...prev, bottom: true }));
             
@@ -42,27 +57,53 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
             setVisibleElements(prev => ({ ...prev, circle: true }));
         };
         sequence();
-    }, []);
+    }, [isMobile]);
 
     // Counter and Glitch Logic
     useEffect(() => {
         if (phase !== 'loading' || !visibleElements.circle) return;
 
         let startTime = Date.now();
-        const duration = 7000;
+        const duration = 4000;
 
         const update = () => {
             const now = Date.now();
             const elapsed = now - startTime;
-            const progress = Math.min(elapsed / duration, 1);
             
-            const easedProgress = progress < 0.5 
-                ? 2 * progress * progress 
-                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+            if (elapsed >= duration) {
+                setCounter(100);
+                window.dispatchEvent(new CustomEvent('loading-progress', { detail: 100 }));
+                // Dynamic Resize Animation: 100% -> 70% -> 75%
+                setTimeout(() => {
+                    setResizeStep('small');
+                    setTimeout(() => {
+                        setResizeStep('final');
+                        setPhase('ready');
+                    }, 400);
+                }, 500);
+                return;
+            }
 
-            setCounter(Math.floor(easedProgress * 100));
+            // Calculate progress based on 1s cycles (fast 0.75s, slow 0.25s)
+            const cycle = Math.floor(elapsed / 1000);
+            const timeInCycle = elapsed % 1000;
+            
+            let progressInCycle = 0;
+            if (timeInCycle < 750) {
+                // Fast part: 0.75s covers 21.4285% (85.7% of the cycle's 25% share)
+                progressInCycle = (timeInCycle / 750) * 21.4285;
+            } else {
+                // Slow part: 0.25s covers the remaining 3.5715% (14.3% of the cycle's 25% share)
+                progressInCycle = 21.4285 + ((timeInCycle - 750) / 250) * 1.5715;
+            }
+            
+            const currentTotalProgress = (cycle * 25) + progressInCycle;
+            const finalProgress = Math.floor(Math.min(currentTotalProgress, 100));
+            setCounter(finalProgress);
+            window.dispatchEvent(new CustomEvent('loading-progress', { detail: finalProgress }));
 
-            if (elapsed > 3000 && elapsed < 4000) {
+            // Glitch text logic (scaled to 4s duration)
+            if (elapsed > 2000 && elapsed < 3000) {
                 if (Math.random() > 0.8) {
                     setGlitchText({
                         portfolio: Math.random() > 0.5 ? 'PORTFƏLIO' : 'PORTFOLTO',
@@ -73,18 +114,7 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
                 setGlitchText({ portfolio: 'PORTFOLIO', overview: 'OVERVIEW:' });
             }
 
-            if (progress < 1) {
-                requestAnimationFrame(update);
-            } else {
-                // Dynamic Resize Animation: 100% -> 70% -> 75%
-                setTimeout(() => {
-                    setResizeStep('small');
-                    setTimeout(() => {
-                        setResizeStep('final');
-                        setPhase('ready');
-                    }, 400);
-                }, 500);
-            }
+            requestAnimationFrame(update);
         };
 
         requestAnimationFrame(update);
@@ -105,7 +135,12 @@ const IntroOverlay: React.FC<IntroOverlayProps> = ({ onComplete }) => {
     }, [phase, visibleElements.circle]);
 
     const handleEnter = () => {
-        // Space reserved for new animation from scratch
+        // Trigger fullscreen on mobile for app-like experience if supported
+        if (isMobile && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.warn(`Fullscreen request failed: ${err.message}`);
+            });
+        }
         onComplete();
     };
 

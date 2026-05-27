@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { motion, useScroll, useSpring, useTransform, useVelocity } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform, useVelocity, useMotionValue, AnimatePresence } from "motion/react";
 
 const CinematicScrollProgress: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
-  
+  const [isLoading, setIsLoading] = useState(true);
+
   const { scrollYProgress } = useScroll();
-  
+  const loadingProgress = useMotionValue(0);
+
+  // Choose between loading progress or scroll progress
+  const activeProgress = useTransform(
+    [scrollYProgress, loadingProgress],
+    ([s, l]) => isLoading ? (l as number) : (s as number)
+  );
+
   // Spring configuration for that "premium" overshoot and settle feel
-  const scaleX = useSpring(scrollYProgress, {
+  const scaleX = useSpring(activeProgress, {
     stiffness: 100,
     damping: 30,
     restDelta: 0.001
@@ -15,7 +23,7 @@ const CinematicScrollProgress: React.FC = () => {
 
   // Track scroll velocity for reactive effects
   const scrollVelocity = useVelocity(scrollYProgress);
-  
+
   // Intensify glow based on scroll velocity
   const glowIntensity = useTransform(
     scrollVelocity,
@@ -25,7 +33,7 @@ const CinematicScrollProgress: React.FC = () => {
 
   // Pulse opacity while scrolling
   const lineOpacity = useTransform(
-    scrollYProgress,
+    activeProgress,
     [0, 0.05, 0.95, 1],
     [0.4, 1, 1, 0.4]
   );
@@ -35,11 +43,22 @@ const CinematicScrollProgress: React.FC = () => {
 
   useEffect(() => {
     setIsMounted(true);
+
+    const handleProgress = (e: any) => {
+      loadingProgress.set(e.detail / 100);
+      if (e.detail >= 100) {
+        // Stay in loading mode for a moment after 100% for the transition
+        setTimeout(() => setIsLoading(false), 800);
+      }
+    };
+
+    window.addEventListener('loading-progress', handleProgress);
+    return () => window.removeEventListener('loading-progress', handleProgress);
   }, []);
 
   // Use visibility: hidden or opacity instead of conditional return to maintain hook order
   return (
-    <div 
+    <div
       className="fixed top-0 left-0 w-full z-[10000] pointer-events-none flex justify-center transition-opacity duration-500"
       style={{ opacity: isMounted ? 1 : 0 }}
     >
@@ -58,10 +77,10 @@ const CinematicScrollProgress: React.FC = () => {
       >
         {/* The Core Line */}
         <div className="absolute inset-0 bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)]" />
-        
+
         {/* Animated Noise/Particles inside the line */}
         <div className="absolute inset-0 overflow-hidden">
-          <motion.div 
+          <motion.div
             animate={{ x: ["-100%", "100%"] }}
             transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
             className="w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
@@ -75,12 +94,30 @@ const CinematicScrollProgress: React.FC = () => {
         />
 
         {/* Ambient Reflection beneath the bar */}
-        <div className="absolute top-[4px] left-0 w-full h-[8px] bg-gradient-to-b from-white/10 to-transparent blur-[6px] opacity-50" />
+        <motion.div
+          animate={isLoading ? { opacity: [0.3, 0.6, 0.3] } : { opacity: 0.5 }}
+          transition={isLoading ? { repeat: Infinity, duration: 2 } : {}}
+          className="absolute top-[4px] left-0 w-full h-[8px] bg-gradient-to-b from-white/10 to-transparent blur-[6px]"
+        />
+
+        {/* Loading Complete Flare */}
+        <AnimatePresence>
+          {isLoading && loadingProgress.get() >= 1 && (
+            <motion.div
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: 1, opacity: [0, 1, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="absolute inset-0 bg-white blur-[10px] z-10"
+            />
+          )}
+        </AnimatePresence>
       </motion.div>
 
-      
+
       {/* Subtle Noise Texture on the bar itself */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes grain {
           0%, 100% { transform: translate(0, 0); }
           10% { transform: translate(-1%, -1%); }
