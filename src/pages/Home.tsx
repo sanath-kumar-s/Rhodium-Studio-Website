@@ -5,6 +5,7 @@ import { usePerformance } from '../hooks/usePerformance';
 // Lazy load below-the-fold or heavy components
 const ServiceFeature = lazy(() => import('../components/ServiceFeature'));
 const SpotlightNavbar = lazy(() => import('../components/SpotlightNavbar').then(m => ({ default: m.SpotlightNavbar })));
+const SpotlightNavbarMobile = lazy(() => import('../components/SpotlightNavbarMobile').then(m => ({ default: m.SpotlightNavbarMobile })));
 const CustomCursor = lazy(() => import('../components/effects/CustomCursor'));
 const IridescentSpheres = lazy(() => import('../components/effects/IridescentSpheres'));
 const PhysicsBallsEffect = lazy(() => import('../components/effects/PhysicsBallsEffect'));
@@ -14,6 +15,7 @@ const LiquidEffectAnimation = lazy(() => import('../components/ui/liquid-effect-
 const IntroOverlay = lazy(() => import('../components/IntroOverlay'));
 const ContactOverlay = lazy(() => import('../components/ContactOverlay').then(m => ({ default: m.ContactOverlay })));
 const CinematicScrollProgress = lazy(() => import('../components/effects/CinematicScrollProgress'));
+const Interactive3DText = lazy(() => import('../components/effects/Interactive3DText'));
 
 export default function Home() {
   const [isIntroComplete, setIsIntroComplete] = useState(false);
@@ -42,8 +44,8 @@ export default function Home() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: isLowEnd ? 0 : 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: {
         duration: isLowEnd ? 0.3 : 0.8,
@@ -66,25 +68,35 @@ export default function Home() {
         {!isMobile && <CustomCursor />}
       </Suspense>
 
-      <Suspense fallback={null}>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isIntroComplete ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
-          className="fixed inset-0 w-full h-screen z-[100] pointer-events-none"
-        >
-          <div className="w-full h-full relative">
-            <SpotlightNavbar onContactClick={() => setIsContactOpen(true)} />
-          </div>
-        </motion.div>
-      </Suspense>
-      
+      {/* Desktop Spotlight Navbar — hidden on mobile */}
+      {!isMobile && (
+        <Suspense fallback={null}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isIntroComplete ? { opacity: 1 } : { opacity: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
+            className="fixed inset-0 w-full h-screen z-[100] pointer-events-none"
+          >
+            <div className="w-full h-full relative">
+              <SpotlightNavbar onContactClick={() => setIsContactOpen(true)} />
+            </div>
+          </motion.div>
+        </Suspense>
+      )}
+
+      {/* Mobile Navbar — only Contact button, shown on mobile only */}
+      {isMobile && isIntroComplete && (
+        <Suspense fallback={null}>
+          <SpotlightNavbarMobile onContactClick={() => setIsContactOpen(true)} />
+        </Suspense>
+      )}
+
       <Suspense fallback={null}>
         <CinematicScrollProgress />
       </Suspense>
 
       <motion.div
-        animate={{ 
+        animate={{
           scale: isContactOpen ? 0.98 : 1,
           opacity: isContactOpen ? 0.4 : 1,
         }}
@@ -100,7 +112,7 @@ export default function Home() {
           {/* Hero Section */}
           <section id="home" className="relative min-h-screen md:min-h-screen flex items-center justify-center p-6 md:p-20 overflow-hidden" style={{ minHeight: '100svh' }}>
             <div className="hero-glow pointer-events-none" />
-            
+
             <div className="relative z-10 max-w-5xl w-full text-center">
               <motion.div
                 variants={itemVariants}
@@ -116,7 +128,7 @@ export default function Home() {
                 variants={itemVariants}
                 className="text-muted text-xl md:text-2xl max-w-2xl mx-auto mb-16 font-body tracking-tight"
               >
-                Engineering high-performance landing pages for modern tech brands. 
+                Engineering high-performance landing pages for modern tech brands.
                 Delivered with surgical focus and cinematic quality.
               </motion.p>
 
@@ -124,16 +136,16 @@ export default function Home() {
                 variants={itemVariants}
                 className="flex flex-col items-center justify-center gap-20"
               >
-                <button 
+                <button
                   onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
                   className="btn-primary md:group"
                 >
-                  Start Building 
+                  Start Building
                   <span className="hidden md:inline-block md:group-hover:translate-x-1 transition-transform ml-2">→</span>
                 </button>
 
                 {!isLowEnd && (
-                  <motion.div 
+                  <motion.div
                     animate={{ y: [0, 10, 0] }}
                     transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                     className="flex flex-col items-center gap-3"
@@ -156,7 +168,7 @@ export default function Home() {
           <div id="services" className="bg-bg">
             <Suspense fallback={<div className="h-screen bg-black" />}>
               <motion.div variants={itemVariants} className="content-visibility-auto">
-                <ServiceFeature 
+                <ServiceFeature
                   index="01"
                   label="01 / LANDING ARCHITECTURE"
                   title="Landing pages engineered for conversion."
@@ -169,7 +181,7 @@ export default function Home() {
 
             <Suspense fallback={<div className="h-screen bg-black" />}>
               <motion.div variants={itemVariants} className="content-visibility-auto">
-                <ServiceFeature 
+                <ServiceFeature
                   index="02"
                   label="02 / PERFORMANCE"
                   title="Built for speed at every layer."
@@ -182,7 +194,7 @@ export default function Home() {
 
             <Suspense fallback={<div className="h-screen bg-black" />}>
               <motion.div variants={itemVariants} className="content-visibility-auto">
-                <ServiceFeature 
+                <ServiceFeature
                   index="03"
                   label="03 / TECHNICAL SEO"
                   title="Search visibility integrated from the foundation."
@@ -195,7 +207,7 @@ export default function Home() {
 
             <Suspense fallback={<div className="h-screen bg-black" />}>
               <motion.div variants={itemVariants} className="content-visibility-auto">
-                <ServiceFeature 
+                <ServiceFeature
                   index="04"
                   label="04 / SCALABLE SYSTEMS"
                   title="Digital systems designed to evolve with your brand."
@@ -210,12 +222,12 @@ export default function Home() {
           {/* Why Section */}
           <section id="why" className="py-[clamp(3rem,8vw,8rem)] px-6 md:px-20 bg-[#050505] border-y border-white/5 relative overflow-hidden content-visibility-auto">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[300px] bg-white/[0.02] blur-[100px] pointer-events-none" />
-            
+
             <div className="max-w-7xl mx-auto relative z-10">
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-12 md:gap-20">
                 <motion.div variants={itemVariants}>
-                   <div className="font-ui text-[13px] uppercase tracking-[0.2em] text-muted mb-6">WHY RHODIUM / PHILOSOPHY</div>
-                   <h2 className="fluid-h2">Simplicity is sophistication.</h2>
+                  <div className="font-ui text-[13px] uppercase tracking-[0.2em] text-muted mb-6">WHY RHODIUM / PHILOSOPHY</div>
+                  <h2 className="fluid-h2">Simplicity is sophistication.</h2>
                 </motion.div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-12">
@@ -234,28 +246,33 @@ export default function Home() {
               </div>
             </div>
           </section>
-          
+
           {/* Large Footnote Branding */}
-          <section className="py-[140px] flex items-center justify-center overflow-hidden pointer-events-none select-none content-visibility-auto">
-            <motion.h2
-              variants={itemVariants}
-              className="font-display text-[18vw] md:text-[18vw] font-extrabold leading-none tracking-tighter uppercase whitespace-nowrap text-white"
-            >
-              Rhodium
-            </motion.h2>
+          <section className="py-[140px] flex items-center justify-center overflow-hidden content-visibility-auto">
+            <Suspense fallback={
+              <div className="w-full flex items-center justify-center py-6 select-none pointer-events-none">
+                <h2 className="font-display text-[16vw] font-extrabold leading-none tracking-tighter uppercase whitespace-nowrap text-white/5">
+                  Rhodium
+                </h2>
+              </div>
+            }>
+              <motion.div variants={itemVariants} className="w-full">
+                <Interactive3DText />
+              </motion.div>
+            </Suspense>
           </section>
 
           {/* Footer */}
           <footer className="py-[clamp(3rem,6vw,5rem)] px-6 md:px-20 border-t border-white/10 relative z-10 bg-black content-visibility-auto">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
               <div className="flex flex-col items-center md:items-start gap-4">
-                 <div className="font-display text-2xl font-bold tracking-tighter text-white">RHODIUM.</div>
-                 <p className="text-muted text-sm font-ui uppercase tracking-widest">© 2024 Design Studio / Est. London</p>
+                <div className="font-display text-2xl font-bold tracking-tighter text-white">RHODIUM.</div>
+                <p className="text-muted text-sm font-ui uppercase tracking-widest">© 2024 Design Studio / Est. London</p>
               </div>
               <div className="flex items-center gap-10">
-                 <a href="#" className="font-ui text-xs uppercase tracking-widest text-muted hover:text-white transition-colors">Instagram</a>
-                 <a href="#" className="font-ui text-xs uppercase tracking-widest text-muted hover:text-white transition-colors">Github</a>
-                 <a href="#" className="font-ui text-xs uppercase tracking-widest text-muted hover:text-white transition-colors">LinkedIn</a>
+                <a href="#" className="font-ui text-xs uppercase tracking-widest text-muted hover:text-white transition-colors">Instagram</a>
+                <a href="#" className="font-ui text-xs uppercase tracking-widest text-muted hover:text-white transition-colors">Github</a>
+                <a href="#" className="font-ui text-xs uppercase tracking-widest text-muted hover:text-white transition-colors">LinkedIn</a>
               </div>
             </div>
           </footer>

@@ -35,13 +35,20 @@ export function SpotlightNavbar({
   onContactClick,
   defaultActiveIndex = 0,
 }: SpotlightNavbarProps) {
+
   const navRef = useRef<HTMLDivElement>(null);
 
-  const [activeIndex, setActiveIndex] = useState(defaultActiveIndex);
-  const [hoverX, setHoverX] = useState<number | null>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeIndex, setActiveIndex] =
+    useState(defaultActiveIndex);
 
-  const { isMobile, isLowEnd } = usePerformance();
+  const [hoverX, setHoverX] =
+    useState<number | null>(null);
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] =
+    useState(false);
+
+  const { isMobile, isLowEnd } =
+    usePerformance();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -50,64 +57,100 @@ export function SpotlightNavbar({
   const ambienceX = useRef(0);
   const rafRef = useRef<number>(0);
 
+  // -----------------------------
+  // DESKTOP SPOTLIGHT
+  // -----------------------------
   useEffect(() => {
-    if (!navRef.current || isMobile) return;
+
+    if (!navRef.current || isMobile)
+      return;
 
     const nav = navRef.current;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (
+      e: MouseEvent
+    ) => {
+
       cancelAnimationFrame(rafRef.current);
 
-      rafRef.current = requestAnimationFrame(() => {
-        const rect = nav.getBoundingClientRect();
-        const x = e.clientX - rect.left;
+      rafRef.current =
+        requestAnimationFrame(() => {
 
-        setHoverX(x);
+          const rect =
+            nav.getBoundingClientRect();
 
-        spotlightX.current = x;
+          const x =
+            e.clientX - rect.left;
 
-        nav.style.setProperty("--spotlight-x", `${x}px`);
-      });
+          setHoverX(x);
+
+          spotlightX.current = x;
+
+          nav.style.setProperty(
+            "--spotlight-x",
+            `${x}px`
+          );
+        });
     };
 
     const handleMouseLeave = () => {
+
       cancelAnimationFrame(rafRef.current);
 
       setHoverX(null);
 
-      const activeItem = nav.querySelector(
-        `[data-index="${activeIndex}"]`
-      );
+      const activeItem =
+        nav.querySelector(
+          `[data-index="${activeIndex}"]`
+        );
 
       if (activeItem) {
-        const navRect = nav.getBoundingClientRect();
-        const itemRect = activeItem.getBoundingClientRect();
+
+        const navRect =
+          nav.getBoundingClientRect();
+
+        const itemRect =
+          activeItem.getBoundingClientRect();
 
         const targetX =
           itemRect.left -
           navRect.left +
           itemRect.width / 2;
 
-        animate(spotlightX.current, targetX, {
-          type: "spring",
-          stiffness: 200,
-          damping: 20,
-          onUpdate: (v) => {
-            spotlightX.current = v;
+        animate(
+          spotlightX.current,
+          targetX,
+          {
+            type: "spring",
+            stiffness: 200,
+            damping: 20,
 
-            nav.style.setProperty(
-              "--spotlight-x",
-              `${v}px`
-            );
-          },
-        });
+            onUpdate: (v) => {
+
+              spotlightX.current = v;
+
+              nav.style.setProperty(
+                "--spotlight-x",
+                `${v}px`
+              );
+            },
+          }
+        );
       }
     };
 
-    nav.addEventListener("mousemove", handleMouseMove);
-    nav.addEventListener("mouseleave", handleMouseLeave);
+    nav.addEventListener(
+      "mousemove",
+      handleMouseMove
+    );
+
+    nav.addEventListener(
+      "mouseleave",
+      handleMouseLeave
+    );
 
     return () => {
+
       nav.removeEventListener(
         "mousemove",
         handleMouseMove
@@ -118,66 +161,102 @@ export function SpotlightNavbar({
         handleMouseLeave
       );
 
-      cancelAnimationFrame(rafRef.current);
+      cancelAnimationFrame(
+        rafRef.current
+      );
     };
+
   }, [activeIndex, isMobile]);
 
+  // -----------------------------
+  // AMBIENT LINE
+  // -----------------------------
   useEffect(() => {
-    if (!navRef.current) return;
+
+    if (!navRef.current)
+      return;
 
     const nav = navRef.current;
 
-    const activeItem = nav.querySelector(
-      `[data-index="${activeIndex}"]`
-    );
+    const activeItem =
+      nav.querySelector(
+        `[data-index="${activeIndex}"]`
+      );
 
     if (activeItem) {
-      const navRect = nav.getBoundingClientRect();
-      const itemRect = activeItem.getBoundingClientRect();
+
+      const navRect =
+        nav.getBoundingClientRect();
+
+      const itemRect =
+        activeItem.getBoundingClientRect();
 
       const targetX =
         itemRect.left -
         navRect.left +
         itemRect.width / 2;
 
-      animate(ambienceX.current, targetX, {
-        type: "spring",
-        stiffness: 200,
-        damping: 20,
-        onUpdate: (v) => {
-          ambienceX.current = v;
+      animate(
+        ambienceX.current,
+        targetX,
+        {
+          type: "spring",
+          stiffness: 200,
+          damping: 20,
 
-          nav.style.setProperty(
-            "--ambience-x",
-            `${v}px`
-          );
-        },
-      });
+          onUpdate: (v) => {
+
+            ambienceX.current = v;
+
+            nav.style.setProperty(
+              "--ambience-x",
+              `${v}px`
+            );
+          },
+        }
+      );
     }
+
   }, [activeIndex]);
 
+  // -----------------------------
+  // NAVIGATION
+  // -----------------------------
   const handleItemClick = (
     item: NavItem,
     index: number
   ) => {
+
     if (item.label === "Contact") {
+
       onContactClick?.();
+
       return;
     }
 
     if (!item.href.startsWith("/")) {
+
       if (location.pathname !== "/") {
+
         navigate("/#" + item.href);
+
       } else {
-        const el = document.getElementById(item.href);
+
+        const el =
+          document.getElementById(
+            item.href
+          );
 
         if (el) {
+
           el.scrollIntoView({
             behavior: "smooth",
           });
         }
       }
+
     } else {
+
       navigate(item.href);
     }
 
@@ -189,98 +268,150 @@ export function SpotlightNavbar({
   };
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen((prev) => !prev);
+    setIsMobileMenuOpen(prev => !prev);
   };
 
   return (
+
     <motion.div
+
       initial={{
         y: 100,
         opacity: 0,
       }}
+
       animate={{
         y: 0,
         opacity: 1,
       }}
+
       transition={{
         delay: 1.2,
         duration: 1.2,
         ease: [0.22, 1, 0.36, 1],
       }}
+
       className={cn(
-        "fixed bottom-12 left-1/2 -translate-x-1/2 z-50 flex justify-center pointer-events-none",
+        "fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex justify-center pointer-events-none",
         className
       )}
     >
-      {/* Mobile Hamburger */}
+
+      {/* MOBILE HAMBURGER */}
       <button
+
         onClick={toggleMobileMenu}
-        style={{ pointerEvents: "auto" }}
+
+        style={{
+          pointerEvents: "auto",
+        }}
+
         className={cn(
-          "md:hidden flex flex-col gap-1.5 p-4 rounded-full spotlight-nav-bg glass-border spotlight-nav-shadow z-50",
-          !isLowEnd && "backdrop-blur-md"
+          "md:hidden flex flex-col gap-2 p-5 rounded-full z-50",
+          "spotlight-nav-bg glass-border spotlight-nav-shadow",
+          !isLowEnd &&
+          "backdrop-blur-md"
         )}
+
         aria-label="Toggle menu"
       >
+
         <motion.span
+
           animate={{
-            rotate: isMobileMenuOpen ? 45 : 0,
-            y: isMobileMenuOpen ? 7.5 : 0,
+            rotate:
+              isMobileMenuOpen
+                ? 45
+                : 0,
+
+            y:
+              isMobileMenuOpen
+                ? 8
+                : 0,
           }}
-          className="w-6 h-0.5 bg-white block"
+
+          className="w-7 h-[2px] bg-white rounded-full block"
         />
 
         <motion.span
+
           animate={{
-            opacity: isMobileMenuOpen ? 0 : 1,
+            opacity:
+              isMobileMenuOpen
+                ? 0
+                : 1,
           }}
-          className="w-6 h-0.5 bg-white block"
+
+          className="w-7 h-[2px] bg-white rounded-full block"
         />
 
         <motion.span
+
           animate={{
-            rotate: isMobileMenuOpen ? -45 : 0,
-            y: isMobileMenuOpen ? -7.5 : 0,
+            rotate:
+              isMobileMenuOpen
+                ? -45
+                : 0,
+
+            y:
+              isMobileMenuOpen
+                ? -8
+                : 0,
           }}
-          className="w-6 h-0.5 bg-white block"
+
+          className="w-7 h-[2px] bg-white rounded-full block"
         />
       </button>
 
-      {/* Desktop Navbar */}
+      {/* DESKTOP NAV */}
       <nav
+
         ref={navRef}
-        // style={{ pointerEvents: "auto" }}
+
         className={cn(
           "spotlight-nav spotlight-nav-bg glass-border spotlight-nav-shadow",
           "hidden md:flex relative h-14 rounded-full overflow-hidden px-4 items-center",
-          !isLowEnd && "backdrop-blur-md"
+          !isLowEnd &&
+          "backdrop-blur-md"
         )}
-        // @ts-ignore
+
         style={
           {
             pointerEvents: "auto",
+
             "--spotlight-color":
               "rgba(255,255,255,0.12)",
+
             "--ambience-color":
               "rgba(255,255,255,1)",
+
           } as React.CSSProperties
         }
       >
+
         <ul className="relative flex items-center h-full gap-1 z-10">
+
           {items.map((item, idx) => (
+
             <li
               key={idx}
               className="relative h-full flex items-center justify-center"
             >
+
               <button
+
                 type="button"
+
                 data-index={idx}
+
                 onClick={() =>
                   handleItemClick(item, idx)
                 }
+
                 className={cn(
                   "px-5 py-2 rounded-full outline-none transition-colors duration-200",
                   "font-ui text-[13px] font-medium tracking-tight",
+
                   activeIndex === idx
                     ? "text-white"
                     : "text-muted hover:text-white"
@@ -288,15 +419,22 @@ export function SpotlightNavbar({
               >
                 {item.label}
               </button>
+
             </li>
           ))}
         </ul>
 
-        {/* Spotlight */}
+        {/* SPOTLIGHT */}
         <div
+
           className="pointer-events-none absolute inset-0 z-[1] transition-opacity duration-300"
+
           style={{
-            opacity: hoverX !== null ? 1 : 0,
+            opacity:
+              hoverX !== null
+                ? 1
+                : 0,
+
             background: `
               radial-gradient(
                 100px circle at var(--spotlight-x) 100%,
@@ -307,9 +445,11 @@ export function SpotlightNavbar({
           }}
         />
 
-        {/* Bottom ambient line */}
+        {/* AMBIENT LINE */}
         <div
+
           className="pointer-events-none absolute bottom-0 left-0 w-full h-[2px] z-[2]"
+
           style={{
             background: `
               radial-gradient(
@@ -320,66 +460,123 @@ export function SpotlightNavbar({
             `,
           }}
         />
+
       </nav>
 
-      {/* Mobile Drawer */}
+      {/* MOBILE DRAWER */}
       <AnimatePresence>
+
         {isMobileMenuOpen && (
           <>
+
+            {/* BACKDROP */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+
+              initial={{
+                opacity: 0,
+              }}
+
+              animate={{
+                opacity: 1,
+              }}
+
+              exit={{
+                opacity: 0,
+              }}
+
+              transition={{
+                duration: 0.35,
+              }}
+
               onClick={toggleMobileMenu}
+
               className={cn(
-                "fixed inset-0 bg-black/60 z-40 md:hidden",
-                !isLowEnd && "backdrop-blur-sm"
+                "fixed inset-0 bg-black/70 z-40 md:hidden",
+                !isLowEnd &&
+                "backdrop-blur-md"
               )}
             />
 
+            {/* MENU */}
             <motion.div
+
               initial={{
-                y: "100%",
+                y: 80,
                 opacity: 0,
+                scale: 0.92,
               }}
+
               animate={{
                 y: 0,
                 opacity: 1,
+                scale: 1,
               }}
+
               exit={{
-                y: "100%",
+                y: 80,
                 opacity: 0,
+                scale: 0.96,
               }}
+
+              transition={{
+                type: "spring",
+                stiffness: 140,
+                damping: 20,
+              }}
+
               className={cn(
-                "fixed bottom-32 left-6 right-6 p-8 rounded-[2rem] z-50 md:hidden overflow-hidden",
+                "fixed bottom-6 left-4 right-4 min-h-[55vh]",
+                "p-10 rounded-[2.5rem] z-50 md:hidden overflow-hidden",
+                "flex items-center justify-center",
                 "spotlight-nav-bg glass-border spotlight-nav-shadow",
-                !isLowEnd && "backdrop-blur-md"
+                !isLowEnd &&
+                "backdrop-blur-xl"
               )}
             >
-              <div className="absolute inset-0 opacity-5 pointer-events-none">
-                <div className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full bg-white blur-[60px] -translate-x-1/2 -translate-y-1/2" />
+
+              {/* GLOW */}
+              <div className="absolute inset-0 bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none" />
+
+              {/* CENTER GLOW */}
+              <div className="absolute inset-0 opacity-10 pointer-events-none">
+
+                <div className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full bg-white blur-[80px] -translate-x-1/2 -translate-y-1/2" />
+
               </div>
 
-              <ul className="relative flex flex-col gap-6 items-center z-10">
+              {/* NAV ITEMS */}
+              <ul className="relative flex flex-col gap-10 items-center justify-center z-10 w-full">
+
                 {items.map((item, idx) => (
+
                   <li key={idx}>
+
                     <button
+
                       onClick={() =>
                         handleItemClick(item, idx)
                       }
+
                       className={cn(
-                        "text-2xl font-display font-bold tracking-tight transition-colors duration-200",
+                        "text-[clamp(2rem,6vw,3rem)]",
+                        "font-display font-semibold",
+                        "tracking-[-0.04em]",
+                        "transition-all duration-300",
+
                         activeIndex === idx
-                          ? "text-white"
-                          : "text-muted"
+                          ? "text-white scale-100"
+                          : "text-muted scale-[0.96]"
                       )}
                     >
                       {item.label}
                     </button>
+
                   </li>
                 ))}
               </ul>
+
             </motion.div>
+
           </>
         )}
       </AnimatePresence>
