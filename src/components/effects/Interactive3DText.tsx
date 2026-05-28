@@ -7,7 +7,7 @@ import { usePerformance } from '../../hooks/usePerformance';
 // ========================================
 // TOGGLE 3D TEXT HERE
 // ========================================
-const ENABLE_3D_TEXT = false;
+const ENABLE_3D_TEXT = true;
 
 export default function Interactive3DText() {
 
