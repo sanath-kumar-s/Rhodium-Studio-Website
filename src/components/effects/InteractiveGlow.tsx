@@ -3,7 +3,6 @@ import {
   motion,
   useMotionValue,
   useSpring,
-  useTransform,
 } from 'motion/react';
 
 import { usePerformance } from '../../hooks/usePerformance';
@@ -105,13 +104,55 @@ export default function InteractiveGlow() {
       {/* Ambient static lighting */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.025),transparent_60%)]" />
 
-      {/* Lightweight grain */}
+      {/* Fine grain layer */}
       <div
-        className="absolute inset-0 opacity-[0.015] mix-blend-soft-light"
+        className="absolute inset-0 opacity-[0.03] mix-blend-overlay"
         style={{
-          backgroundImage:
-            'radial-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)',
-          backgroundSize: '4px 4px',
+          backgroundImage: `
+            radial-gradient(rgba(255,255,255,0.18) 0.6px, transparent 0.6px),
+            radial-gradient(rgba(255,255,255,0.08) 0.4px, transparent 0.4px)
+          `,
+          backgroundPosition: '0 0, 2px 2px',
+          backgroundSize: '4px 4px, 3px 3px',
+        }}
+      />
+
+      {/* Organic noise texture */}
+      <div
+        className="absolute inset-0 opacity-[0.025] mix-blend-soft-light"
+        style={{
+          backgroundImage: `
+            repeating-radial-gradient(
+              circle at 0 0,
+              rgba(255,255,255,0.08) 0px,
+              transparent 2px
+            )
+          `,
+          backgroundSize: '6px 6px',
+        }}
+      />
+
+      {/* Film grain flicker */}
+      <motion.div
+        animate={{
+          opacity: [0.015, 0.03, 0.02, 0.025],
+        }}
+        transition={{
+          duration: 0.25,
+          repeat: Infinity,
+          ease: 'linear',
+        }}
+        className="absolute inset-0 mix-blend-soft-light"
+        style={{
+          backgroundImage: `
+            repeating-linear-gradient(
+              0deg,
+              rgba(255,255,255,0.03) 0px,
+              rgba(255,255,255,0.01) 1px,
+              transparent 2px,
+              transparent 4px
+            )
+          `,
         }}
       />
     </div>

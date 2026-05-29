@@ -1,6 +1,8 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { usePerformance } from '../hooks/usePerformance';
+import FlipText from '../components/ui/FlipText';
+import AnimatedButton from '../components/ui/animated-button';
 
 // Lazy load heavy components
 const ServiceFeature = lazy(() => import('../components/ServiceFeature'));
@@ -36,6 +38,8 @@ const CinematicScrollProgress = lazy(() =>
 const Interactive3DText = lazy(() =>
   import('../components/effects/Interactive3DText')
 );
+const HeroBackground = lazy(() => import('../components/effects/HeroBackground'));
+
 
 export default function Home() {
   const [isIntroComplete, setIsIntroComplete] = useState(false);
@@ -147,71 +151,90 @@ export default function Home() {
             id="home"
             className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden px-6 py-24 md:min-h-screen md:p-20"
           >
+            {/* Layered background — grid + diamond + particles + glow */}
+            <Suspense fallback={<div style={{ position: 'absolute', inset: 0, background: '#090909' }} />}>
+              <HeroBackground />
+            </Suspense>
+
+            {/* Legacy glow kept for the subtle centre bloom */}
             <div className="hero-glow pointer-events-none" />
 
-            <div className="relative z-10 w-full max-w-5xl text-center">
+            <div className="relative z-10 w-full max-w-4xl text-center flex flex-col items-center">
 
-              <motion.div
-                variants={itemVariants}
-                className="blur-reveal"
-              >
-                <h1 className="fluid-h1 mb-8">
-                  Create With <br />
-                  Perfection.
+              {/* Social-proof pill */}
+              <motion.div variants={itemVariants} className="mb-8">
+                <span className="hero-pill">
+                  <span className="hero-pill-dot" />
+                  Trusted by 50+ modern brands
+                </span>
+              </motion.div>
+
+              {/* 3-line heading */}
+              <motion.div variants={itemVariants} className="blur-reveal mb-6">
+                <h1
+                  className="fluid-h1"
+                  style={{ lineHeight: 0.92, letterSpacing: '-0.055em' }}
+                >
+                  {/* Lines 1–2: full white */}
+                  <span style={{ display: 'block', color: '#ffffff' }}>Create With</span>
+                  <span style={{ display: 'block', color: '#ffffff' }}>Perfection.</span>
+
+                  {/* Line 3: muted grey + FlipText animation */}
+                  <span
+                    style={{
+                      display: 'block',
+                      color: '#9ca3af',
+                      marginTop: '0.12em',
+                      fontSize: '0.72em',
+                      fontWeight: 500,
+                      letterSpacing: '-0.03em',
+                    }}
+                  >
+                    <FlipText text="with precision and speed" className="text-6xl" />
+                  </span>
                 </h1>
               </motion.div>
 
+              {/* Subtitle */}
               <motion.p
                 variants={itemVariants}
-                className="mx-auto mb-16 max-w-2xl text-xl tracking-tight text-muted md:text-2xl font-body"
+                className="mx-auto mb-10 max-w-md text-sm tracking-tight text-muted/70 font-body text-center leading-relaxed"
               >
                 Engineering high-performance landing pages for modern tech brands.
                 Delivered with surgical focus and cinematic quality.
               </motion.p>
 
+              {/* AnimatedButton CTA */}
               <motion.div
                 variants={itemVariants}
-                className="flex flex-col items-center justify-center gap-20"
+                className="flex flex-col items-center justify-center gap-16"
               >
-
-                <button
+                <AnimatedButton
+                  as="button"
+                  className="px-8 py-3 text-sm font-medium rounded-lg bg-neutral-900 border border-neutral-700 text-neutral-100"
                   onClick={() =>
                     document
                       .getElementById('services')
-                      ?.scrollIntoView({
-                        behavior: 'smooth'
-                      })
+                      ?.scrollIntoView({ behavior: 'smooth' })
                   }
-                  className="btn-primary md:group"
                 >
-                  Start Building
-
-                  <span className="ml-2 hidden transition-transform md:inline-block md:group-hover:translate-x-1">
-                    →
-                  </span>
-                </button>
+                  Start Building →
+                </AnimatedButton>
 
                 {!isLowEnd && (
                   <motion.div
-                    animate={{
-                      y: [0, 10, 0]
-                    }}
-                    transition={{
-                      repeat: Infinity,
-                      duration: 2,
-                      ease: 'easeInOut'
-                    }}
+                    animate={{ y: [0, 10, 0] }}
+                    transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
                     className="flex flex-col items-center gap-3"
                   >
                     <div className="h-12 w-[1px] bg-gradient-to-b from-white/20 to-transparent" />
-
                     <span className="font-ui text-[10px] uppercase tracking-[0.3em] text-muted/50">
                       Scroll
                     </span>
                   </motion.div>
                 )}
-
               </motion.div>
+
             </div>
           </section>
 
