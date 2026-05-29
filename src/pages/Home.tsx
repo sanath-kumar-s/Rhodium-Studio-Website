@@ -175,9 +175,19 @@ export default function Home() {
                   className="fluid-h1"
                   style={{ lineHeight: 0.92, letterSpacing: '-0.055em' }}
                 >
-                  {/* Lines 1–2: full white */}
-                  <span style={{ display: 'block', color: '#ffffff' }}>Create With</span>
-                  <span style={{ display: 'block', color: '#ffffff' }}>Perfection.</span>
+                  <h1 className="hero-title">
+
+                    {/* Line 1 */}
+                    <span className="hero-line hero-line-top">
+                      Create With
+                    </span>
+
+                    {/* Line 2 */}
+                    <span className="hero-line hero-line-main">
+                      Perfection.
+                    </span>
+
+                  </h1>
 
                   {/* Line 3: muted grey + FlipText animation */}
                   <span
@@ -187,10 +197,10 @@ export default function Home() {
                       marginTop: '0.12em',
                       fontSize: '0.72em',
                       fontWeight: 500,
-                      letterSpacing: '-0.03em',
+                      letterSpacing: 'normal',
                     }}
                   >
-                    <FlipText text="with precision and speed" className="text-6xl" />
+                    <FlipText text="with precision and speed" className="text-5xl flip-subtext" />
                   </span>
                 </h1>
               </motion.div>
@@ -424,21 +434,21 @@ export default function Home() {
               <div className="flex items-center gap-10">
 
                 <a
-                  href="#"
+                  href="https://instagram.com/itz_.sanath"
                   className="font-ui text-xs uppercase tracking-widest text-muted transition-colors hover:text-white"
                 >
                   Instagram
                 </a>
 
                 <a
-                  href="#"
+                  href="https://github.com/sanath-kumar-s"
                   className="font-ui text-xs uppercase tracking-widest text-muted transition-colors hover:text-white"
                 >
                   Github
                 </a>
 
                 <a
-                  href="#"
+                  href="https://www.linkedin.com/in/sanath-kumar-s1/"
                   className="font-ui text-xs uppercase tracking-widest text-muted transition-colors hover:text-white"
                 >
                   LinkedIn

@@ -219,77 +219,183 @@
 /* ── FlipText ─────────────────────────────────────────────── */
 
 .flip-text-wrapper {
-  perspective: 600px;
+  perspective: 800px;
 }
 
 .flip-char {
-  display: inline-block;
-  position: relative;
+  animation:
+    smoothCubeFlip var(--flip-duration) cubic-bezier(0.77, 0, 0.175, 1) infinite;
+
   transform-style: preserve-3d;
-  -webkit-text-fill-color: transparent;
-  /* hide the layout ghost */
-  animation: flipCubic var(--flip-duration, 3s) var(--flip-delay, 0s) infinite cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 }
 
 /* ── Two real faces ───────────────────────────────────────── */
-.flip-char::before,
-.flip-char::after {
-  content: attr(data-char);
+
+.face {
   position: absolute;
   inset: 0;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  -webkit-text-fill-color: currentColor;
+
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Front face — starts facing the viewer */
-.flip-char::after {
+/* FRONT */
+.front {
   transform: rotateX(0deg) translateZ(0.5em);
 }
 
-/* Back face — starts pointing down, rotates in */
-.flip-char::before {
+/* BACK */
+.back {
+  transform: rotateX(180deg) translateZ(0.5em);
+}
+
+/* TOP */
+.top {
   transform: rotateX(90deg) translateZ(0.5em);
 }
 
-/* ── Keyframes ─────────────────────────────────────────────── */
+/* BOTTOM */
+.bottom {
+  transform: rotateX(-90deg) translateZ(0.5em);
+}
 
-/*
-  Full cycle (4 stages):
-    0%   → front face visible, back hidden below
-    25%  → mid-spin (both faces edge-on)
-    50%  → front face has rotated out the top, back face now visible
-    75%  → mid-spin again
-    100% → back to start
-*/
+/* 4-face cube rotation */
 
-@keyframes flipCubic {
-  0% {
+@keyframes smoothCubeFlip {
+
+  /* FRONT */
+  0%,
+  15% {
     transform: rotateX(0deg);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
   }
 
-  /* ease into the flip */
-  20% {
-    transform: rotateX(0deg);
+  /* TOP / NEXT FACE */
+  25%,
+  40% {
+    transform: rotateX(-90deg);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
   }
 
-  /* full rotation — front goes up, back comes in from below */
-  50% {
+  /* BACK */
+  50%,
+  65% {
     transform: rotateX(-180deg);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
   }
 
-  /* hold on the back face */
-  70% {
-    transform: rotateX(-180deg);
+  /* BOTTOM */
+  75%,
+  90% {
+    transform: rotateX(-270deg);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
   }
 
-  /* return */
+  /* RETURN TO START */
   100% {
     transform: rotateX(-360deg);
   }
+}
+
+
+/* Hero-section customization ---------------------------------------*/
+
+.hero-title {
+  display: flex;
+  flex-direction: column;
+
+  line-height: 0.9;
+  letter-spacing: -0.06em;
+}
+
+/* =========================
+   TOP LINE
+========================= */
+
+.hero-line-top {
+  font-family: 'Inter Tight', sans-serif;
+
+  font-size: clamp(5rem, 9vw, 9rem);
+  font-weight: 300;
+
+  color: #FAFAFA;
+  letter-spacing: normal;
+  line-height: normal;
+
+}
+
+
+/* =========================
+   MAIN GRADIENT LINE
+========================= */
+
+.hero-line-main {
+  font-family: 'Inter Tight', sans-serif;
+
+  font-size: 96px;
+  font-weight: 300;
+
+  color: #FAFAFA;
+  letter-spacing: normal;
+  line-height: normal;
+
+  /* PREMIUM SILVER GRADIENT */
+  background:
+    linear-gradient(180deg,
+      #ffffff 0%,
+      #f0f0f0 18%,
+      #ebebeb 40%,
+      #c5c5c5 58%,
+      #c0c0c0 78%,
+      #2b2b2b 100%);
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  background-size: 100% 140%;
+
+  /* subtle metallic glow */
+  filter:
+    drop-shadow(0 0 12px rgba(255, 255, 255, 0.08));
+}
+
+
+/* =========================
+   SUBTEXT
+========================= */
+
+.hero-line-sub {
+  margin-top: 0.18em;
+
+  font-family: 'Space Grotesk', sans-serif;
+
+  font-size: 2rem;
+  font-weight: 500;
+
+  color: #9ca3af;
+
+  letter-spacing: -0.03em;
+}
+
+
+/* =========================
+   FLIP TEXT
+========================= */
+
+.flip-subtext {
+  display: inline-flex;
+
+  font-family: 'JetBrains Mono', monospace;
+
+  font-weight: 400;
+
+  letter-spacing: normal;
 }
 
 /* ─── Hero social-proof pill ────────────────────────────────────── */
