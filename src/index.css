@@ -327,9 +327,7 @@
   color: #FAFAFA;
   letter-spacing: normal;
   line-height: normal;
-
 }
-
 
 /* =========================
    MAIN GRADIENT LINE
@@ -345,9 +343,7 @@
   letter-spacing: normal;
   line-height: normal;
 
-  /* PREMIUM SILVER GRADIENT */
-  background:
-    linear-gradient(180deg,
+  background: linear-gradient(180deg,
       #ffffff 0%,
       #f0f0f0 18%,
       #ebebeb 40%,
@@ -360,11 +356,8 @@
 
   background-size: 100% 140%;
 
-  /* subtle metallic glow */
-  filter:
-    drop-shadow(0 0 12px rgba(255, 255, 255, 0.08));
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.08));
 }
-
 
 /* =========================
    SUBTEXT
@@ -383,7 +376,6 @@
   letter-spacing: -0.03em;
 }
 
-
 /* =========================
    FLIP TEXT
 ========================= */
@@ -392,10 +384,126 @@
   display: inline-flex;
 
   font-family: 'JetBrains Mono', monospace;
-
   font-weight: 400;
 
   letter-spacing: normal;
+
+
+}
+
+.flip-subtext-span {
+  display: block;
+  color: #9ca3af;
+  margin-top: 0.12em;
+  font-size: 0.3em;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+
+/* ==================================================
+   TABLET (1024px and below)
+================================================== */
+
+@media (max-width: 1024px) {
+  .hero-title {
+    line-height: 0.95;
+  }
+
+  .hero-line-top {
+    font-size: clamp(3.8rem, 8vw, 6rem);
+  }
+
+  .hero-line-main {
+    font-size: clamp(4rem, 9vw, 6.5rem);
+  }
+
+  .hero-line-sub {
+    font-size: 1.4rem;
+  }
+
+  .flip-subtext-span {
+    font-size: 0.35em;
+    margin-top: 0.15em;
+  }
+}
+
+/* ==================================================
+   MOBILE (768px and below)
+================================================== */
+
+@media (max-width: 768px) {
+  .hero-title {
+    align-items: center;
+    text-align: center;
+
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .hero-line-top {
+    font-size: clamp(3rem, 12.2vw, 5.2rem);
+  }
+
+  .hero-line-main {
+    font-size: clamp(2.8rem, 12vw, 5rem);
+
+    line-height: 0.95;
+
+    filter:
+      drop-shadow(0 0 8px rgba(255, 255, 255, 0.06));
+  }
+
+  .hero-line-sub {
+    margin-top: 0.4rem;
+
+    font-size: 1rem;
+    line-height: 1.4;
+
+    max-width: 90%;
+  }
+
+  .flip-subtext {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .flip-subtext-span {
+    display: block;
+
+    font-size: 0.45em;
+    line-height: 1.4;
+
+    margin-top: 0.25em;
+
+    text-align: center;
+  }
+}
+
+/* ==================================================
+   SMALL MOBILE (480px and below)
+================================================== */
+
+@media (max-width: 480px) {
+  .hero-line-top {
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+
+  .hero-line-main {
+    font-size: clamp(2.4rem, 13vw, 4rem);
+  }
+
+  .hero-line-sub {
+    font-size: 0.9rem;
+    max-width: 95%;
+  }
+
+  .flip-subtext-span {
+    font-size: 0.5em;
+
+    margin-top: 0.3em;
+
+    line-height: 1.5;
+  }
 }
 
 /* ─── Hero social-proof pill ────────────────────────────────────── */

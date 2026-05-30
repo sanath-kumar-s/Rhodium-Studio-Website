@@ -191,16 +191,9 @@ export default function Home() {
 
                   {/* Line 3: muted grey + FlipText animation */}
                   <span
-                    style={{
-                      display: 'block',
-                      color: '#9ca3af',
-                      marginTop: '0.12em',
-                      fontSize: '0.72em',
-                      fontWeight: 500,
-                      letterSpacing: 'normal',
-                    }}
+                    className="flip-subtext-span"
                   >
-                    <FlipText text="with precision and speed" className="text-5xl flip-subtext" />
+                    <FlipText text="with precision and speed" className="flip-subtext" />
                   </span>
                 </h1>
               </motion.div>
