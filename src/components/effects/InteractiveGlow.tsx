@@ -12,65 +12,77 @@ export default function InteractiveGlow() {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Raw mouse positions
   const mouseX = useMotionValue(-9999);
   const mouseY = useMotionValue(-9999);
-
-  // Visibility motion value
   const visibility = useMotionValue(0);
 
-  // Smooth interpolation
   const smoothX = useSpring(mouseX, {
-    stiffness: 180,
-    damping: 28,
-    mass: 0.6,
+    stiffness: 140,
+    damping: 24,
+    mass: 0.8,
   });
 
   const smoothY = useSpring(mouseY, {
-    stiffness: 180,
-    damping: 28,
-    mass: 0.6,
+    stiffness: 140,
+    damping: 24,
+    mass: 0.8,
   });
 
-  // Smooth opacity transition
   const opacity = useSpring(visibility, {
-    stiffness: 120,
+    stiffness: 100,
     damping: 20,
   });
 
   useEffect(() => {
     if (isMobile || isLowEnd) return;
 
+    let rafId = 0;
+
     const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
+      cancelAnimationFrame(rafId);
 
-      const rect = containerRef.current.getBoundingClientRect();
+      rafId = requestAnimationFrame(() => {
+        if (!containerRef.current) return;
 
-      const relativeX = e.clientX - rect.left;
-      const relativeY = e.clientY - rect.top;
+        const rect =
+          containerRef.current.getBoundingClientRect();
 
-      mouseX.set(relativeX);
-      mouseY.set(relativeY);
+        mouseX.set(e.clientX - rect.left);
+        mouseY.set(e.clientY - rect.top);
 
-      const padding = 120;
+        const padding = 100;
 
-      const inside =
-        e.clientX >= rect.left - padding &&
-        e.clientX <= rect.right + padding &&
-        e.clientY >= rect.top - padding &&
-        e.clientY <= rect.bottom + padding;
+        const inside =
+          e.clientX >= rect.left - padding &&
+          e.clientX <= rect.right + padding &&
+          e.clientY >= rect.top - padding &&
+          e.clientY <= rect.bottom + padding;
 
-      visibility.set(inside ? 1 : 0);
+        visibility.set(inside ? 1 : 0);
+      });
     };
 
-    window.addEventListener('mousemove', handleMouseMove, {
-      passive: true,
-    });
+    window.addEventListener(
+      'mousemove',
+      handleMouseMove,
+      { passive: true }
+    );
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(rafId);
+
+      window.removeEventListener(
+        'mousemove',
+        handleMouseMove
+      );
     };
-  }, [isMobile, isLowEnd, mouseX, mouseY, visibility]);
+  }, [
+    isMobile,
+    isLowEnd,
+    mouseX,
+    mouseY,
+    visibility,
+  ]);
 
   if (isMobile || isLowEnd) return null;
 
@@ -79,7 +91,7 @@ export default function InteractiveGlow() {
       ref={containerRef}
       className="absolute inset-0 overflow-hidden pointer-events-none z-0"
     >
-      {/* Interactive Glow */}
+      {/* Cursor Glow */}
       <motion.div
         style={{
           x: smoothX,
@@ -89,70 +101,27 @@ export default function InteractiveGlow() {
           translateY: '-50%',
           willChange: 'transform',
         }}
-        className="absolute w-[550px] h-[550px] rounded-full"
+        className="absolute w-[380px] h-[380px] rounded-full"
       >
-        {/* Main soft glow */}
-        <div className="absolute inset-0 rounded-full bg-white/5 blur-3xl" />
-
-        {/* Secondary depth layer */}
-        <div className="absolute inset-0 rounded-full bg-white/[0.03] blur-2xl scale-125" />
-
-        {/* Tiny bright core */}
-        <div className="absolute inset-[35%] rounded-full bg-white/[0.08] blur-xl" />
+        <div className="absolute inset-0 rounded-full bg-white/[0.04] blur-2xl" />
       </motion.div>
 
-      {/* Ambient static lighting */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.025),transparent_60%)]" />
-
-      {/* Fine grain layer */}
+      {/* Ambient Corner Light */}
       <div
-        className="absolute inset-0 opacity-[0.03] mix-blend-overlay"
+        className="absolute inset-0"
         style={{
-          backgroundImage: `
-            radial-gradient(rgba(255,255,255,0.18) 0.6px, transparent 0.6px),
-            radial-gradient(rgba(255,255,255,0.08) 0.4px, transparent 0.4px)
-          `,
-          backgroundPosition: '0 0, 2px 2px',
-          backgroundSize: '4px 4px, 3px 3px',
+          background:
+            'radial-gradient(circle at bottom left, rgba(255,255,255,0.02), transparent 60%)',
         }}
       />
 
-      {/* Organic noise texture */}
+      {/* Lightweight Grain */}
       <div
-        className="absolute inset-0 opacity-[0.025] mix-blend-soft-light"
+        className="absolute inset-0 opacity-[0.02] mix-blend-overlay"
         style={{
-          backgroundImage: `
-            repeating-radial-gradient(
-              circle at 0 0,
-              rgba(255,255,255,0.08) 0px,
-              transparent 2px
-            )
-          `,
-          backgroundSize: '6px 6px',
-        }}
-      />
-
-      {/* Film grain flicker */}
-      <motion.div
-        animate={{
-          opacity: [0.015, 0.03, 0.02, 0.025],
-        }}
-        transition={{
-          duration: 0.25,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-        className="absolute inset-0 mix-blend-soft-light"
-        style={{
-          backgroundImage: `
-            repeating-linear-gradient(
-              0deg,
-              rgba(255,255,255,0.03) 0px,
-              rgba(255,255,255,0.01) 1px,
-              transparent 2px,
-              transparent 4px
-            )
-          `,
+          backgroundImage:
+            'radial-gradient(rgba(255,255,255,0.15) 0.5px, transparent 0.5px)',
+          backgroundSize: '5px 5px',
         }}
       />
     </div>

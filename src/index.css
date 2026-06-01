@@ -224,7 +224,7 @@
 
 .flip-char {
   animation:
-    smoothCubeFlip var(--flip-duration) cubic-bezier(0.77, 0, 0.175, 1) infinite;
+    smoothCubeFlipInverse var(--flip-duration) cubic-bezier(0.77, 0, 0.175, 1) infinite;
 
   transform-style: preserve-3d;
   will-change: transform;
@@ -300,6 +300,42 @@
   /* RETURN TO START */
   100% {
     transform: rotateX(-360deg);
+  }
+}
+
+@keyframes smoothCubeFlipInverse {
+
+  /* FRONT */
+  0%,
+  15% {
+    transform: rotateX(0deg);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+  }
+
+  /* TOP / NEXT FACE */
+  25%,
+  40% {
+    transform: rotateX(90deg);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+  }
+
+  /* BACK */
+  50%,
+  65% {
+    transform: rotateX(180deg);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+  }
+
+  /* BOTTOM */
+  75%,
+  90% {
+    transform: rotateX(270deg);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+  }
+
+  /* RETURN TO START */
+  100% {
+    transform: rotateX(360deg);
   }
 }
 
